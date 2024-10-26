@@ -1,0 +1,113 @@
+.formContainer {
+    max-width: 600px;
+    margin: 1em auto;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    font-family: Arial, sans-serif;
+    padding: 1em;
+}
+
+
+.inputField,
+.textareaField,
+.fileInput {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 16px;
+    box-sizing: border-box;
+}
+
+.textareaField {
+    height: 100px;
+    resize: vertical;
+}
+
+.labelField {
+    font-weight: bold;
+    margin-bottom: 5px;
+    display: block;
+    padding-top: 1em;
+}
+
+
+.submitButton {
+    background-color: #4CAF50;
+    color: white;
+    padding: 12px 20px;
+    margin-top: 10px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+}
+
+.submitButtonHover:hover {
+    background-color: #45a049;
+}
+
+.inputFocus:focus,
+.textareaFocus:focus {
+    border-color: #4CAF50;
+    outline: none;
+}
+
+.selectField {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background-color: white;
+    font-size: 16px;
+    cursor: pointer;
+    transition: border-color 0.3s;
+}
+
+.selectField:hover,
+.selectField:focus {
+    border-color: #007BFF;
+    outline: none;
+}
+
+.error {
+    color: red;
+    font-size: 0.875em;
+}
+
+.selectedProducts {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 16px;
+    box-sizing: border-box;
+}
+
+.selectedProductsHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.selectedProductsBody {
+    display: flex;
+    gap: 1em;
+    flex-wrap: wrap;
+}
+
+.addButton {
+    width: 35px;
+    height: 35px;
+    cursor: pointer;
+    border: none;
+    background-color: #f9f9f9;
+}
+
+.addButton img {
+    width: 100%;
+    height: auto;
+}

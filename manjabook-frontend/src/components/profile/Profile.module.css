@@ -1,0 +1,15 @@
+.profile {
+    border-radius: 1.5em;
+    box-shadow: 0 0 1em 0 rgb(0, 0, 0, 0.5);
+    padding: 1em;
+    margin: 1em;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5em;
+    max-width: 400px;
+}
+
+.profileHeader .profilePicture img {
+    width: 100%;
+    height: auto;
+}

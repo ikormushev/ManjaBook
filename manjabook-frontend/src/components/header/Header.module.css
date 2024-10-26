@@ -1,0 +1,42 @@
+.headerDiv {
+    background-color: #002737;
+    display: flex;
+    padding: 1em 4em;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.headerDiv div {
+    display: flex;
+    align-items: center;
+    gap: 2em;
+}
+
+.headerDiv div .logoImg {
+    width: 4em;
+    height: auto;
+}
+
+.logoImg img, .headerButtons .profileImg img{
+    width: 100%;
+    height: auto
+}
+
+.headerDiv div .mainNav {
+    display: flex;
+    gap: 1em;
+}
+
+.headerDiv .link {
+    color: white;
+    text-decoration: none;
+}
+
+.headerDiv .link:hover {
+    color: #B3EDA9;
+}
+
+.headerDiv .headerButtons .profileImg {
+    width: 2.5em;
+    height: 2.5em;
+}
