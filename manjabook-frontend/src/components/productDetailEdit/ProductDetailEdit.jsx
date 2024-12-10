@@ -1,4 +1,4 @@
-import Modal from "../../utils/modal/Modal.jsx";
+import CustomModal from "../../utils/modal/CustomModal.jsx";
 import {useState} from "react";
 
 
@@ -29,7 +29,7 @@ export default function ProductDetailEdit({productInfo, units, onEditProduct, mo
         <div>
             {children}
 
-            <Modal isOpen={modalState} onClose={handleModalMode}>
+            <CustomModal isOpen={modalState} onClose={handleModalMode}>
                 <h3>Edit Product</h3>
                 <input
                     type="text"
@@ -58,7 +58,7 @@ export default function ProductDetailEdit({productInfo, units, onEditProduct, mo
                     ))}
                 </select>
                 <button type="button" onClick={handleEdit}>Edit</button>
-            </Modal>
+            </CustomModal>
         </div>
     );
 };

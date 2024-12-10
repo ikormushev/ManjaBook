@@ -1,39 +1,136 @@
-.recipeDetail {
-    border-radius: 1.5em;
-    box-shadow: 0 0 1em 0 rgb(0, 0, 0, 0.5);
-    padding: 1em;
+.recipeContainer {
+    padding: 2em;
+    display: flex;
+
+    background-color: #D9D9D9;
+    gap: 2em;
 }
 
-.recipeDetailHeader {
-    width: 200px;
-    height: auto;
-    padding-bottom: 1em;
+.recipeInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 2em;
 }
-.recipeDetailHeader img {
+
+.recipeImageContainer {
+    position: relative;
+}
+
+.creator {
+    display: flex;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    background-color: #fff;
+    width: 10.5em;
+
+    position: absolute;
+    top: -1.5em;
+    left: -1em;
+    z-index: 10;
+}
+
+.creator .profilePicture {
+    width: 4em;
+    height: auto;
+    flex-shrink: 0;
+}
+
+.creator div img {
+    width: 100%;
+    height: 100%;
+}
+
+.creator .creatorInfo {
+    display: flex;
+    flex-wrap: wrap;
+    flex-grow: 1;
+}
+
+.creator .creatorInfo .creatorUsername {
+    text-align: center;
+    background-color: white;
+    flex-grow: 1;
+    align-self: center;
+}
+
+.creator .creatorInfo .recipeDate {
+    text-align: center;
+    background-color: #DFDFDF;
+    flex-grow: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.recipeImage {
+    width: 25em;
+    height: auto;
+    display: block;
+    position: relative;
+}
+.recipeImage img {
     width: 100%;
     height: auto;
 }
-.recipeDetailTitle {
+
+.recipeQuickDescription {
     text-align: center;
+    width: 100%;
+    font-style: italic;
+    font-weight: bold;
+    padding: 1em 0;
 }
 
-.recipeDetailInfo {
+.productsContainer {
+    position: relative;
+}
+
+.productsHeader, .preparationHeader {
+    color: #FFFFFF;
+    background-color: #105D5E;
+    padding: 1em;
+}
+
+.products {
     display: flex;
-    gap: 1em;
-    padding-bottom: 1em;
+    flex-wrap: wrap;
+    background-color: white;
+    padding: 1em;
 }
 
-.recipeDetailCreator {
-    display: flex;
-    gap: 1em;
-}
 
-.recipeDetailCreator .profilePicture {
+.infoButton {
     width: 50px;
     height: 50px;
 }
 
-.recipeDetailCreator .profilePicture img {
+.infoButton img {
     width: 100%;
     height: auto;
 }
+
+.preparationContainer {
+    position: relative;
+}
+
+.preparationBody {
+    background-color: white;
+    padding: 1em;
+}
+
+.recipeBodyContainer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2em;
+}
+
+.recipeCookInfo {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.recipeCookInfoField {
+    background-color: #FFFFFF;
+    padding: 0.5em;
+}
+

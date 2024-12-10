@@ -30,7 +30,7 @@ export default function Login() {
                 setAuthState({
                     isAuthenticated: true,
                     username: data.username,
-                    userID: data.userID,
+                    userID: data.user_id,
                 });
                 navigate('/');
             }

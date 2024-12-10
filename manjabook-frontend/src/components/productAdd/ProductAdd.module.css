@@ -1,0 +1,28 @@
+.productsContainer {
+    display: flex;
+    gap: 1em;
+    padding: 1em 0;
+}
+
+
+.allProducts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1em;
+    flex: 7;
+}
+
+.finalizeProductPage {
+    display: flex;
+    gap: 1em;
+}
+
+.selectedProduct {
+
+}
+
+.selectedProductInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 1em;
+}

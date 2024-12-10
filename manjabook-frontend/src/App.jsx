@@ -11,6 +11,7 @@ import AuthProvider from "./context/authProvider/AuthProvider.jsx";
 import Profile from "./components/profile/Profile.jsx";
 import RecipeCreator from "./components/recipeCreator/RecipeCreator.jsx";
 import ProtectedRoute from "./utils/protectedRoute/ProtectedRoute.jsx";
+import RecipeDetail from "./components/recipeDetail/RecipeDetail.jsx";
 
 export default function App() {
     return (
@@ -19,6 +20,7 @@ export default function App() {
                 <Route element={<DefaultLayout/>}>
                     <Route path="/" element={<Home/>}/>
                     <Route path="/recipes" element={<RecipesDashboard/>}/>
+                    <Route path="/recipes/:recipeID/:recipeSlug" element={<RecipeDetail/>}/>
                     <Route path="/profile/:userID" element={<Profile/>}/>
 
                     <Route element={<ProtectedRoute/>}>
