@@ -1,9 +1,17 @@
 import {useEffect, useState} from "react";
-import {useNavigate} from "react-router-dom";
+import {useLocation, useNavigate} from "react-router-dom";
+import {
+    Box,
+    TextField,
+    Button,
+    Typography,
+    InputLabel,
+} from '@mui/material';
 import styles from "./RecipeCreator.module.css";
 import ProductAdd from "../productAdd/ProductAdd.jsx";
 import ProductDetail from "../productDetail/ProductDetail.jsx";
 import addButtonIcon from "../../assets/images/add-button-icon.png";
+import defaultRecipeImage from "../../assets/images/default-recipe-image.png";
 
 const backendURL = import.meta.env.VITE_BACKEND_URL;
 const apiRecipeCreate = `${backendURL}/recipes/`;
@@ -24,6 +32,15 @@ const recipeTemplate = {
 
 export default function RecipeCreator() {
     const navigate = useNavigate();
+    const location = useLocation();
+    const recipeData = location.state?.recipeData || null;
+
+    if (recipeData) {
+        Object.entries(recipeTemplate).forEach(([key, value]) => {
+            recipeTemplate[key] = recipeData[key];
+        });
+        recipeTemplate.image = null;
+    }
     const [showProductModal, setShowProductModal] = useState(false);
 
     const [products, setProducts] = useState([]);
@@ -32,7 +49,7 @@ export default function RecipeCreator() {
     const [formErrors, setFormErrors] = useState({});
 
     const [formValues, setFormValues] = useState(recipeTemplate);
-    const [selectedProducts, setSelectedProducts] = useState([]);
+    const [selectedProducts, setSelectedProducts] = useState(recipeData ? recipeData.products : []);
 
     const validateForms = (values) => {
         const errors = {};
@@ -52,7 +69,9 @@ export default function RecipeCreator() {
         }
 
         const formData = new FormData();
-
+        if (!formValues.image) {
+            delete formValues.image;
+        }
         for (const key in formValues) {
             formData.append(key, formValues[key]);
         }
@@ -66,16 +85,18 @@ export default function RecipeCreator() {
         })));
 
         try {
-            const response = await fetch(apiRecipeCreate, {
-                method: "POST",
+            const response = await fetch(recipeData ?
+                `${apiRecipeCreate}${recipeData.id}/`:
+                apiRecipeCreate, {
+                method: recipeData ? "PUT": "POST",
                 body: formData,
                 credentials: "include",
             });
 
             if (response.ok) {
                 navigate("/recipes");
-                alert('Recipe created!');
             } else {
+                console.log(response);
                 setFetchErrors(response.error.message);
             }
         } catch (error) {
@@ -85,12 +106,14 @@ export default function RecipeCreator() {
 
     const changeHandler = (e) => {
         const targetType = e.target.type;
-        const targetValue = e.target.value;
-
+        let targetValue = e.target.value;
+        if (targetType === 'file') {
+            targetValue = e.target.files[0];
+        }
         setFormValues(oldValues => ({
             ...oldValues,
-            [e.target.name]: targetType === 'file' ? e.target.files[0] : targetValue,
-        }))
+            [e.target.name]: targetValue,
+        }));
     };
 
     useEffect(() => {
@@ -151,113 +174,163 @@ export default function RecipeCreator() {
         setShowProductModal(!showProductModal);
     };
 
-    return (<>
-            <div>
-                <form className={styles.formContainer} onSubmit={handleSubmit}>
-                    <div>
-                        <label htmlFor="name" className={styles.labelField}>Recipe Name:</label>
-                        <input
-                            className={styles.inputField}
-                            name="name"
-                            type="text"
-                            value={formValues.name}
-                            onChange={changeHandler}
-                            placeholder="Recipe Name"
-                        />
-                        {formErrors.name && <p className={styles.error}>{formErrors.name}</p>}
-                    </div>
+    return (
+        <Box
+            component="form"
+            encType="multipart/form-data"
+            sx={{
+                display: 'flex',
+                gap: 2,
+                padding: 2,
+            }}
+            onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                    e.preventDefault();
+                }
+            }}
+            onSubmit={handleSubmit} // Trigger your submit logic here
+        >
+            <div className={styles.recipeImageInfo}>
+                <div className={styles.recipeImageContainer}>
+                    {recipeData ?
+                        <img src={recipeData.image} alt="recipe_image"/> :
+                        <img src={defaultRecipeImage} alt="recipe_image"/>}
+                </div>
+                <InputLabel htmlFor="image">Upload Image:</InputLabel>
+                <input
+                    id="image"
+                    name="image"
+                    type="file"
+                    onChange={changeHandler}
+                />
 
-                    <div>
-                        <label htmlFor="quick_description" className={styles.labelField}>Description:</label>
-                        <input
-                            className={styles.textareaField}
-                            name="quick_description"
-                            type="textarea"
-                            value={formValues.quick_description}
-                            onChange={changeHandler}
-                            placeholder="Description"
-                        />
-                        {formErrors.quick_description && <p className={styles.error}>{formErrors.quick_description}</p>}
-                    </div>
-
-                    <div>
-                        <label htmlFor="preparation" className={styles.labelField}>Preparation:</label>
-                        <input
-                            className={styles.textareaField}
-                            name="preparation"
-                            type="textarea"
-                            value={formValues.preparation}
-                            onChange={changeHandler}
-                            placeholder="Preparation"
-                        />
-                        {formErrors.preparation && <p className={styles.error}>{formErrors.preparation}</p>}
-                    </div>
-
-                    <label htmlFor="portions" className={styles.labelField}>Portions:</label>
-                    <input
-                        className={styles.inputField}
+                <div>
+                    <InputLabel htmlFor="portions">Portions:</InputLabel>
+                    <TextField
+                        id="portions"
                         name="portions"
                         type="number"
                         value={formValues.portions}
                         onChange={changeHandler}
                         placeholder="0"
+                        fullWidth
+                        error={!!formErrors.portions}
+                        helperText={formErrors.portions || ''}
+                        variant="outlined"
                     />
+                </div>
 
-                    <label htmlFor="time_to_prepare" className={styles.labelField}>Time to prepare:</label>
-                    <input
-                        className={styles.inputField}
+                <div>
+                    <InputLabel htmlFor="time_to_prepare">Time to Prepare:</InputLabel>
+                    <TextField
+                        id="time_to_prepare"
                         name="time_to_prepare"
                         type="number"
                         value={formValues.time_to_prepare}
                         onChange={changeHandler}
                         placeholder="0"
+                        fullWidth
+                        error={!!formErrors.time_to_prepare}
+                        helperText={formErrors.time_to_prepare || ''}
+                        variant="outlined"
                     />
+                </div>
 
-                    <label htmlFor="time_to_cook" className={styles.labelField}>Time to cook:</label>
-                    <input
-                        className={styles.inputField}
+                <div>
+                    <InputLabel htmlFor="time_to_cook">Time to Cook:</InputLabel>
+                    <TextField
+                        id="time_to_cook"
                         name="time_to_cook"
                         type="number"
                         value={formValues.time_to_cook}
                         onChange={changeHandler}
                         placeholder="0"
+                        fullWidth
+                        error={!!formErrors.time_to_cook}
+                        helperText={formErrors.time_to_cook || ''}
+                        variant="outlined"
                     />
+                </div>
+            </div>
 
-                    <label htmlFor="image" className={styles.labelField}>Upload Image:</label>
-                    <input
-                        className={styles.fileInput}
-                        name="image"
-                        type="file"
-                        onChange={changeHandler}
-                    />
+            <div className={styles.recipeBodyContainer}>
+                <div className={styles.recipeBody}>
+                    <div>
+                        <InputLabel htmlFor="name">Recipe Name:</InputLabel>
+                        <TextField
+                            id="name"
+                            name="name"
+                            value={formValues.name}
+                            onChange={changeHandler}
+                            placeholder="Recipe Name"
+                            fullWidth
+                            error={!!formErrors.name}
+                            helperText={formErrors.name || ''}
+                            variant="outlined"
+                        />
+                    </div>
 
-                    <div className={styles.selectedProducts}>
-                        <div className={styles.selectedProductsHeader}>
-                            <h3>Selected Products:</h3>
-                            <ProductAdd
-                                products={products}
-                                units={units}
-                                onSendData={handleSelectedProducts}
-                                handleModalMode={handleModalMode}
-                                showProductModal={showProductModal}
-                            >
-                                <button className={styles.addButton} type="button" onClick={handleModalMode}>
-                                    <img src={addButtonIcon} alt="Add Product"/>
-                                </button>
-                            </ProductAdd>
-                        </div>
-                        <div className={styles.selectedProductsBody}>
-                            {selectedProducts.map((productInfo) => (
-                                <div key={`${productInfo.product.id}-${productInfo.unit.id}-${productInfo.quantity}`}>
-                                    <ProductDetail productInfo={productInfo}
-                                                   onDeleteProduct={handleDeleteProduct}
-                                                   onEditProduct={handleEditProduct}
-                                                   units={units}
-                                    />
-                                </div>
+                    <div>
+                        <InputLabel htmlFor="quick_description">Description:</InputLabel>
+                        <TextField
+                            id="quick_description"
+                            name="quick_description"
+                            value={formValues.quick_description}
+                            onChange={changeHandler}
+                            placeholder="Description"
+                            fullWidth
+                            multiline
+                            rows={4}
+                            error={!!formErrors.quick_description}
+                            helperText={formErrors.quick_description || ''}
+                            variant="outlined"
+                        />
+                    </div>
 
-                            ))}
-                        </div>
+                    <div>
+                        <InputLabel htmlFor="preparation">Preparation:</InputLabel>
+                        <TextField
+                            id="preparation"
+                            name="preparation"
+                            value={formValues.preparation}
+                            onChange={changeHandler}
+                            placeholder="Preparation"
+                            fullWidth
+                            multiline
+                            rows={4}
+                            error={!!formErrors.preparation}
+                            helperText={formErrors.preparation || ''}
+                            variant="outlined"
+                        />
+                    </div>
+                </div>
+
+                <div className={styles.selectedProducts}>
+                    <div className={styles.selectedProductsHeader}>
+                        <h3>Selected Products:</h3>
+                        <ProductAdd
+                            products={products}
+                            units={units}
+                            onSendData={handleSelectedProducts}
+                            handleModalMode={handleModalMode}
+                            showProductModal={showProductModal}
+                        >
+                            <button className={styles.addButton} type="button" onClick={handleModalMode}>
+                                <img src={addButtonIcon} alt="Add Product"/>
+                            </button>
+                        </ProductAdd>
+                    </div>
+                    <div className={styles.selectedProductsBody}>
+                        {selectedProducts.map((productInfo) => (
+                            <div key={`${productInfo.product.id}-${productInfo.unit.id}-${productInfo.quantity}`}>
+                                <ProductDetail productInfo={productInfo}
+                                               onDeleteProduct={handleDeleteProduct}
+                                               onEditProduct={handleEditProduct}
+                                               units={units}
+                                />
+                            </div>
+
+                        ))}
                     </div>
                     <button
                         type="submit"
@@ -265,10 +338,16 @@ export default function RecipeCreator() {
                     >
                         Submit Recipe
                     </button>
-
-                </form>
+                </div>
             </div>
-        </>
+
+            {/*<button*/}
+            {/*    type="submit"*/}
+            {/*    className={`${styles.submitButton} ${styles.submitButtonHover}`}*/}
+            {/*>*/}
+            {/*    Submit Recipe*/}
+            {/*</button>*/}
+        </Box>
     );
 };
 

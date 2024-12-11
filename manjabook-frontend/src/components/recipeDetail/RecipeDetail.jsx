@@ -1,10 +1,12 @@
-import {Link, useParams} from "react-router-dom";
+import {Link, useNavigate, useParams} from "react-router-dom";
 import {useEffect, useState} from "react";
 import PageNotFound from "../pageNotFound/PageNotFound.jsx";
 import styles from './RecipeDetail.module.css';
 import RecipeProducts from "../recipeProduct/RecipeProducts.jsx";
 import defaultUserPicture from "../../assets/images/default-user-picture.png";
 import defaultRecipeImage from "../../assets/images/default-recipe-image.png";
+import editButtonIcon from "../../assets/images/edit-button-icon.png";
+import deleteButtonIcon from '../../assets/images/delete-button-icon.png';
 
 const backendURL = import.meta.env.VITE_BACKEND_URL;
 const apiRecipeDetailURL = `${backendURL}/recipes`;
@@ -22,11 +24,15 @@ export default function RecipeDetail() {
     const {recipeID, recipeSlug} = useParams();
     const [recipe, setRecipe] = useState(recipeDetailTemplate);
     const [loading, setLoading] = useState(true);
+    const navigate = useNavigate();
 
     useEffect(() => {
         const fetchRecipe = async () => {
             try {
-                const recipeResponse = await fetch(`${apiRecipeDetailURL}/${recipeID}`);
+                const recipeResponse = await fetch(`${apiRecipeDetailURL}/${recipeID}`, {
+                    method: "GET",
+                    credentials: "include", // later - same-origin
+                });
                 if (recipeResponse.ok) {
                     const data = await recipeResponse.json();
                     setRecipe(data);
@@ -44,13 +50,33 @@ export default function RecipeDetail() {
     if (loading) return <p>Loading...</p>;
     if (recipe === recipeDetailTemplate) return <PageNotFound/>;
     const formatedDate = new Date(recipe.created_at);
+
     const date = {
-        day: String(formatedDate.getDay()).padStart(2, '0'),
-        month: String(formatedDate.getMonth()).padStart(2, '0'),
+        day: String(formatedDate.getDate()).padStart(2, '0'),
+        month: String(formatedDate.getMonth() + 1).padStart(2, '0'),
         year: formatedDate.getFullYear(),
     };
 
+    const handleEditButton = () => {
+        navigate('/create-recipe', {state: {recipeData: recipe}});
+    };
+    const handleDeleteButton = () => {
+        const fetchDelete = async () => {
+            try {
+                const recipeResponse = await fetch(`${apiRecipeDetailURL}/${recipeID}/`, {
+                    method: "DELETE",
+                    credentials: "include", // later - same-origin
+                });
+                if (recipeResponse.ok) {
+                    navigate("/recipes");
+                }
+            } catch (e) {
+                console.log(e);
+            }
+        };
 
+        fetchDelete();
+    };
     return (<div className={styles.recipeContainer}>
         <div className={styles.recipeInfo}>
             <h2>{recipe.name}</h2>
@@ -58,9 +84,9 @@ export default function RecipeDetail() {
                 <div className={styles.creator}>
                     <Link to={`/profile/${recipe.created_by.user_id}`}>
                         <div className={styles.profilePicture}>
-                                {recipe.created_by.profile_picture ?
-                                    <img src={recipe.created_by.profile_picture} alt="profile_picture"/> :
-                                    <img src={defaultUserPicture} alt="profile_picture"/>}
+                            {recipe.created_by.profile_picture ?
+                                <img src={recipe.created_by.profile_picture} alt="profile_picture"/> :
+                                <img src={defaultUserPicture} alt="profile_picture"/>}
 
                         </div>
                     </Link>
@@ -95,6 +121,15 @@ export default function RecipeDetail() {
                         <p>🔥 {recipe.total_nutrients.calories} cals</p>
                     </div>
                 </div>
+
+                {recipe.is_owner ? <div className={styles.recipeOwnerButtons}>
+                    <button onClick={handleEditButton}>
+                        <img src={editButtonIcon} alt="editButtonIcon"/>
+                    </button>
+                    <button onClick={handleDeleteButton}>
+                        <img src={deleteButtonIcon} alt="deleteButtonIcon"/>
+                    </button>
+                </div> : null}
             </div>
         </div>
         <div className={styles.recipeBodyContainer}>
@@ -103,7 +138,7 @@ export default function RecipeDetail() {
                     <p>Products</p>
                 </div>
                 <div className={styles.products}>
-                    <RecipeProducts products={recipe.products} />
+                    <RecipeProducts products={recipe.products}/>
                 </div>
             </div>
             <div className={styles.preparationContainer}>

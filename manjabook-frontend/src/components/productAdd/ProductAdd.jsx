@@ -1,15 +1,15 @@
-import CustomModal from "../../utils/modal/CustomModal.jsx";
 import {useState} from "react";
 import styles from './ProductAdd.module.css';
 import ProductCard from "../productCard/ProductCard.jsx";
 import MultiPageModal from "../multiPageModal/MultiPageModal.jsx";
-import {FormControl, InputLabel, MenuItem, Select, TextField} from "@mui/material";
+import {FormControl, MenuItem, Select, TextField} from "@mui/material";
 
 const productToAddTemplate = {
     product: null,
     unit: null,
     quantity: 0,
 };
+
 const productTemplate = {
     name: "No product",
     calories: 0,
@@ -22,6 +22,7 @@ const productTemplate = {
 
 export default function ProductAdd({products, units, onSendData, handleModalMode, showProductModal, children}) {
     const [currentProduct, setCurrentProduct] = useState(productToAddTemplate);
+    const [activeTab, setActiveTab] = useState(0);
 
     const handleAdd = () => {
         if (currentProduct.product && currentProduct.unit && currentProduct.quantity) {
@@ -40,57 +41,73 @@ export default function ProductAdd({products, units, onSendData, handleModalMode
         setCurrentProduct((oldValues) => ({...oldValues, [fieldName]: fieldValue}));
     };
 
-    return (<div>
-        {children}
-        <MultiPageModal isOpen={showProductModal} onClose={handleModalMode}
-                        pagesLabels={["Select Product", "Finalize Product"]}>
-            <div className={styles.allProducts}>
-                {products.map((product) => (
-                    <ProductCard product={product} key={`${product.id}-${product.name}`}>
-                        <button type="button" onClick={() => handleSelectProduct("product", product)}>Select</button>
-                    </ProductCard>
-                ))}
-            </div>
+    const handleTabChange = (event, newValue) => {
+        setActiveTab(newValue);
+    };
 
-            <div className={styles.finalizeProductPage}>
-                <div className={styles.selectedProduct}>
-                    {currentProduct.product
-                        ? <>
-                            <ProductCard product={currentProduct.product}>
-                                <button type="button" onClick={() => handleSelectProduct("product", null)}>Remove</button>
-                            </ProductCard>
-                        </>
-                        : <ProductCard product={productTemplate}/>}
+    return (
+        <div>
+            {children}
+            <MultiPageModal isOpen={showProductModal} onClose={handleModalMode}
+                            pagesLabels={["Select Product", "Finalize Product"]}
+                            activeTab={activeTab} handleTabChange={handleTabChange}>
+                <div className={styles.allProducts}>
+                    {products.map((product) => (
+                        <ProductCard product={product} key={`${product.id}-${product.name}`}>
+                            <button type="button" onClick={() => {
+                                handleSelectProduct("product", product)
+                                handleTabChange(null, 1);
+                            }}>
+                                Select
+                            </button>
+                        </ProductCard>
+                    ))}
                 </div>
-                <div className={styles.selectedProductInfo}>
-                    <TextField
-                        label="Quantity"
-                        variant="outlined"
-                        type="number"
-                        onChange={(e) => handleSelectProduct("quantity", e.target.value)}
-                    />
-                    <FormControl small>
-                        <Select
-                            value={currentProduct.unit || ""}
-                            onChange={(e) => handleSelectProduct('unit', e.target.value)}
-                            displayEmpty
+
+                <div className={styles.finalizeProductPage}>
+                    <div className={styles.selectedProduct}>
+                        {currentProduct.product
+                            ? <>
+                                <ProductCard product={currentProduct.product}>
+                                    <button type="button" onClick={() => {
+                                        handleSelectProduct("product", null)
+                                        handleTabChange(null, 0);
+                                    }}>
+                                        Remove
+                                    </button>
+                                </ProductCard>
+                            </>
+                            : <ProductCard product={productTemplate}/>}
+                    </div>
+                    <div className={styles.selectedProductInfo}>
+                        <TextField
+                            label="Quantity"
                             variant="outlined"
-                        >
-                            <MenuItem disabled value="">
-                                <em>Unit</em>
-                            </MenuItem>
-                            {
-                                units.map((unit) => (
-                                    <MenuItem key={unit.id} value={unit}>
-                                        {unit.name}
-                                    </MenuItem>
-                                ))
-                            }
-                        </Select>
-                    </FormControl>
-                    <button type="button" onClick={handleAdd}>Add</button>
+                            type="number"
+                            onChange={(e) => handleSelectProduct("quantity", e.target.value)}
+                        />
+                        <FormControl small>
+                            <Select
+                                value={currentProduct.unit || ""}
+                                onChange={(e) => handleSelectProduct('unit', e.target.value)}
+                                displayEmpty
+                                variant="outlined"
+                            >
+                                <MenuItem disabled value="">
+                                    <em>Unit</em>
+                                </MenuItem>
+                                {
+                                    units.map((unit) => (
+                                        <MenuItem key={unit.id} value={unit}>
+                                            {unit.name}
+                                        </MenuItem>
+                                    ))
+                                }
+                            </Select>
+                        </FormControl>
+                        <button type="button" onClick={handleAdd}>Add</button>
+                    </div>
                 </div>
-            </div>
-        </MultiPageModal>
-    </div>);
+            </MultiPageModal>
+        </div>);
 };

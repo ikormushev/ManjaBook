@@ -8,8 +8,8 @@ const apiLoginURL = import.meta.env.VITE_LOGIN_BACKEND_URL;
 export default function Login() {
     const [errors, setErrors] = useState({ email: "", password: "", general: "" });
     const [formValues, setFormValues] = useState({
-        email: null,
-        password: null,
+        email: "",
+        password: "",
     })
     const navigate = useNavigate();
     const { setAuthState } = useAuth();

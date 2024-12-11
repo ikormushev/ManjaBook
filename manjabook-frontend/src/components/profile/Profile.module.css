@@ -1,15 +1,84 @@
-.profile {
-    border-radius: 1.5em;
-    box-shadow: 0 0 1em 0 rgb(0, 0, 0, 0.5);
-    padding: 1em;
-    margin: 1em;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5em;
-    max-width: 400px;
+.profileContainer {
+    background-color: #DFDFDF;
+    padding-top: 2em;
 }
 
-.profileHeader .profilePicture img {
+.profile {
+    display: flex;
+    gap: 0.5em;
+    max-width: 800px;
+    margin: 0 auto;
+    background-color: #FFFFFF;
+    flex-direction: column;
+}
+
+.profileHeader {
+    display: flex;
+    align-items: flex-end;
+    padding: 1em;
+    gap: 0.5em;
+}
+
+.profileHeader .profilePicture {
+    max-width: 15em;
+}
+
+.profileHeader .profilePicture img, .recipeImage img {
     width: 100%;
     height: auto;
+}
+
+.profileInfo {
+    flex: 1;
+    margin-left: 0.5em;
+}
+
+.profileBody .profileRecipesContainer {
+    padding: 1em;
+    display: flex;
+    gap: 1.5em;
+    flex-wrap: wrap;
+}
+
+.recipePost {
+    display: block;
+    position: relative;
+    border-radius: 1em;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.3s ease-in-out;
+}
+
+.recipePost:hover {
+    transform: scale(1.05);
+}
+
+.recipeImage {
+    position: relative;
+    overflow: hidden;
+    max-width: 20em;
+    border-radius: 1em;
+}
+
+.hoverOverlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+
+    background-color: rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    font-size: 1.2em;
+    font-weight: bold;
+    transition: opacity 0.3s ease-in-out;
+    height: 99%;
+}
+
+.recipeImage:hover .hoverOverlay {
+    opacity: 1;
 }

@@ -24,12 +24,12 @@ export default function RecipeCard(recipeDetails) {
                     </div>
                 </div>
 
-                <div className={styles.recipeDetailCreator}>
+                {creatorInfo ? <div className={styles.recipeDetailCreator}>
                     <div className={styles.profilePicture}>
                         <img src={creatorInfo.profile_picture} alt="recipeDetails.image"/>
                     </div>
                     <p>{creatorInfo.username}</p>
-                </div>
+                </div> : null}
             </div>
         </li>
     );
