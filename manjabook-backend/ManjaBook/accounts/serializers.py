@@ -4,7 +4,7 @@ from django.contrib.auth import get_user_model
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 from ManjaBook.accounts.models import Profile
-
+from ManjaBook.inventory.models import Recipe
 
 UserModel = get_user_model()
 
@@ -29,7 +29,6 @@ class UserCreateSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         user = UserModel.objects.create_user(**validated_data)
-        print(validated_data)
         return user
 
 
@@ -45,5 +44,13 @@ class BaseProfileSerializer(serializers.ModelSerializer):
 
 
 class ProfileSerializer(BaseProfileSerializer):
+    recipes = serializers.SerializerMethodField()
+
     class Meta(BaseProfileSerializer.Meta):
-        fields = BaseProfileSerializer.Meta.fields + ['collections']
+        fields = BaseProfileSerializer.Meta.fields + ['collections', 'recipes']
+
+    def get_recipes(self, obj):
+        from ManjaBook.inventory.serializers import RecipeDetailSerializer
+
+        recipes = Recipe.objects.filter(created_by=obj)
+        return RecipeDetailSerializer(recipes, many=True, context={'exclude_created_by': True}).data

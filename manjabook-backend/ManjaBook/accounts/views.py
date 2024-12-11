@@ -65,7 +65,7 @@ class UserProfileView(api_views.RetrieveAPIView):
     def get_queryset(self):
         return (Profile.objects.all()
                 .select_related('user')
-                .prefetch_related('collections'))
+                .prefetch_related('collections').prefetch_related('recipe_set'))
 
     def get_authenticators(self):
         if self.request.method == 'GET':

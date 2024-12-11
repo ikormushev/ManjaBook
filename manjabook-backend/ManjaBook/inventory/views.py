@@ -1,3 +1,4 @@
+from ManjaBook.accounts.permissions import IsOwnerOrAdmin
 from ManjaBook.inventory.models import Product, Shop, Unit, CustomUnit, Recipe, RecipeProduct, RecipesCollection
 from rest_framework import generics as api_views, permissions
 from ManjaBook.inventory.serializers import ProductCreateSerializer, ShopSerializer, \
@@ -127,19 +128,18 @@ class RecipeListView(api_views.ListCreateAPIView):
         return super().get_authenticators()
 
 
-class RecipeDetailView(api_views.RetrieveAPIView):
+class RecipeDetailView(api_views.RetrieveUpdateDestroyAPIView):
     serializer_class = RecipeDetailSerializer
-    permission_classes = [permissions.AllowAny]
 
     def get_queryset(self):
         return (Recipe.objects.all()
                 .prefetch_related('recipe_products')
                 .prefetch_related('recipe_products__unit', 'recipe_products__custom_unit'))
 
-    def get_authenticators(self):
+    def get_permissions(self):
         if self.request.method == 'GET':
-            return []
-        return super().get_authenticators()
+            return [permissions.AllowAny()]
+        return [IsOwnerOrAdmin()]
 
 
 class RecipeCollectionsListView(api_views.ListAPIView):

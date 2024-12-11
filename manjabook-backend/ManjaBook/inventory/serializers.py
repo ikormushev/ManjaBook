@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from rest_framework.fields import ImageField
+from django.utils.text import slugify
+from unidecode import unidecode
 
 from ManjaBook.accounts.serializers import BaseProfileSerializer
 from ManjaBook.inventory.choices import NutritionPerChoices
@@ -81,6 +82,7 @@ class BaseRecipeSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'quick_description',
                   'time_to_cook', 'time_to_prepare',
                   'slug', 'image', 'created_by', 'total_nutrients']
+        read_only_fields = ['id', 'slug', 'created_by', 'total_nutrients']
 
     def get_total_nutrients(self, obj):
         return obj.calculate_total_nutrients()
@@ -88,9 +90,27 @@ class BaseRecipeSerializer(serializers.ModelSerializer):
 
 class RecipeDetailSerializer(BaseRecipeSerializer):
     products = RecipeProductSerializer(source='recipe_products', many=True, read_only=True)
+    is_owner = serializers.SerializerMethodField()
 
     class Meta(BaseRecipeSerializer.Meta):
-        fields = BaseRecipeSerializer.Meta.fields + ['portions', 'products', 'preparation', 'created_at']
+        fields = BaseRecipeSerializer.Meta.fields + ['portions', 'products', 'preparation', 'created_at', 'is_owner']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.context.get('exclude_created_by', False):
+            self.fields.pop('created_by', None)
+
+    def get_is_owner(self, obj):
+        request = self.context.get('request', None)
+        if request and request.user.is_authenticated:
+            return obj.created_by.user == request.user
+        return False
+
+    def update(self, instance, validated_data):
+        if 'name' in validated_data:
+            instance.slug = slugify(unidecode(validated_data['name']))
+
+        return super().update(instance, validated_data)
 
 
 class RecipeProductCreateSerializer(serializers.ModelSerializer):
@@ -107,6 +127,7 @@ class RecipeProductCreateSerializer(serializers.ModelSerializer):
 class RecipeCreateSerializer(serializers.ModelSerializer):
     # products = RecipeProductCreateSerializer(source='recipe_product', many=True)
     products = serializers.JSONField()
+    image = serializers.ImageField(required=False, allow_null=True)
 
     class Meta:
         model = Recipe
@@ -126,6 +147,11 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         response = RecipeDetailSerializer(instance=instance).data
         return response
+
+    # def validate(self, attrs):
+    #     if 'image' in attrs and attrs['image'] == "null":
+    #         attrs['image'] = None
+    #     return attrs
 
 
 class RecipesCollectionSerializer(serializers.ModelSerializer):
