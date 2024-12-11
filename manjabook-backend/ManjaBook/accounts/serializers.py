@@ -1,3 +1,4 @@
+from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
@@ -12,6 +13,7 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
         data = super().validate(attrs)
         data['user_id'] = self.user.id
+        data['username'] = self.user.username
         return data
 
 
@@ -21,8 +23,13 @@ class UserCreateSerializer(serializers.ModelSerializer):
         fields = ['id', 'email', 'password', 'username']
         extra_kwargs = {'password': {'write_only': True}}
 
+    def validate_password(self, value):
+        validate_password(value)
+        return value
+
     def create(self, validated_data):
         user = UserModel.objects.create_user(**validated_data)
+        print(validated_data)
         return user
 
 

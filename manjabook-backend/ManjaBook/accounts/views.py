@@ -31,9 +31,10 @@ class LoginApiView(TokenObtainPairView):
         access = serializer.validated_data.get('access', None)
         refresh = serializer.validated_data.get('refresh', None)
         user_id = serializer.validated_data.get('user_id', None)
+        username = serializer.validated_data.get('username', None)
 
         if access is not None and refresh is not None and user_id is not None:
-            response = Response({'user_id': user_id, 'username': self.request.user.username},
+            response = Response({'user_id': user_id, 'username': username},
                                 status=status.HTTP_200_OK)
             response.set_cookie('token', access, httponly=True, samesite='Lax',
                                 max_age=settings.SIMPLE_JWT['ACCESS_TOKEN_LIFETIME'].total_seconds())
