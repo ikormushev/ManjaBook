@@ -3,6 +3,7 @@ import styles from './Header.module.css';
 import {useAuth} from "../../context/authProvider/AuthProvider.jsx";
 import logoIcon from "../../assets/images/manja-logo.avif";
 import profilePhoto from "../../assets/images/photo-icon.png";
+import Logout from "../../utils/logout/Logout.jsx";
 
 
 export default function Header() {
@@ -31,8 +32,9 @@ export default function Header() {
                         <NavLink to={`/profile/${userID}`} className={styles.profileImg}>
                             <img src={profilePhoto} alt="profilePhoto"/>
                         </NavLink>
+                        <Logout />
                     </>) :
-                    (<NavLink to='/login'>Login</NavLink>)}
+                    (<NavLink to='/login' className={styles.loginButton}>Login</NavLink>)}
             </div>
         </div>
     );

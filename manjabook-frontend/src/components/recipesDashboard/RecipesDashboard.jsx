@@ -15,11 +15,10 @@ export default function RecipesDashboard(){
         const fetchData = async () => {
             try {
                 const recipesResponse = await fetch(apiUrl);
-                if (!recipesResponse.ok) {
-                    throw new Error();
+                if (recipesResponse.ok) {
+                    const data = await recipesResponse.json();
+                    setRecipes(data);
                 }
-                const data = await recipesResponse.json();
-                setRecipes(data);
             } catch (e) {
                 console.log(e.message);
             } finally {

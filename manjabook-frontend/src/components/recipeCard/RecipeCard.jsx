@@ -1,4 +1,5 @@
 import styles from './RecipeCard.module.css';
+import defaultRecipeImage from "../../assets/images/default-recipe-image.png";
 
 export default function RecipeCard(recipeDetails) {
     const totalTime = recipeDetails.time_to_prepare + recipeDetails.time_to_cook;
@@ -8,9 +9,12 @@ export default function RecipeCard(recipeDetails) {
     return (<li key={recipeDetails.id}>
             <div className={styles.recipeDetail}>
                 <div className={styles.recipeDetailHeader}>
-                    <img src={recipeDetails.image} alt="recipeDetails.image"/>
+                    {recipeDetails.image ?
+                        <img src={recipeDetails.image} alt="recipe_image"/> :
+                        <img src={defaultRecipeImage} alt="default_recipe_image"/>}
                 </div>
-                <div className="recipeDetailBody">
+
+                <div className={styles.recipeDetailBody}>
                     <div className={styles.recipeDetailTitle}>
                         <p>{recipeDetails.name}</p>
                     </div>
@@ -19,6 +23,7 @@ export default function RecipeCard(recipeDetails) {
                         <p>🔥 {totalCalories} calories</p>
                     </div>
                 </div>
+
                 <div className={styles.recipeDetailCreator}>
                     <div className={styles.profilePicture}>
                         <img src={creatorInfo.profile_picture} alt="recipeDetails.image"/>

@@ -1,9 +1,10 @@
-import {useParams} from "react-router-dom";
+import {Link, useParams} from "react-router-dom";
 import {useEffect, useState} from "react";
 import PageNotFound from "../pageNotFound/PageNotFound.jsx";
 import styles from './RecipeDetail.module.css';
-import infoButtonIcon from "../../assets/images/info-button-icon.png";
-import RecipeProduct from "../recipeProduct/RecipeProduct.jsx";
+import RecipeProducts from "../recipeProduct/RecipeProducts.jsx";
+import defaultUserPicture from "../../assets/images/default-user-picture.png";
+import defaultRecipeImage from "../../assets/images/default-recipe-image.png";
 
 const backendURL = import.meta.env.VITE_BACKEND_URL;
 const apiRecipeDetailURL = `${backendURL}/recipes`;
@@ -49,14 +50,20 @@ export default function RecipeDetail() {
         year: formatedDate.getFullYear(),
     };
 
+
     return (<div className={styles.recipeContainer}>
         <div className={styles.recipeInfo}>
             <h2>{recipe.name}</h2>
             <div className={styles.recipeImageContainer}>
                 <div className={styles.creator}>
-                    <div className={styles.profilePicture}>
-                        <img src={recipe.created_by.profile_picture} alt="profile_picture"/>
-                    </div>
+                    <Link to={`/profile/${recipe.created_by.user_id}`}>
+                        <div className={styles.profilePicture}>
+                                {recipe.created_by.profile_picture ?
+                                    <img src={recipe.created_by.profile_picture} alt="profile_picture"/> :
+                                    <img src={defaultUserPicture} alt="profile_picture"/>}
+
+                        </div>
+                    </Link>
                     <div className={styles.creatorInfo}>
                         <div className={styles.creatorUsername}>
                             <p>@{recipe.created_by.username}</p>
@@ -67,7 +74,9 @@ export default function RecipeDetail() {
                     </div>
                 </div>
                 <div className={styles.recipeImage}>
-                    <img src={recipe.image} alt="recipe_image"/>
+                    {recipe.image ?
+                        <img src={recipe.image} alt="recipe_image"/> :
+                        <img src={defaultRecipeImage} alt="default_recipe_image"/>}
                     <div className={styles.recipeQuickDescription}>
                         <p>"{recipe.quick_description}"</p>
                     </div>
@@ -94,14 +103,7 @@ export default function RecipeDetail() {
                     <p>Products</p>
                 </div>
                 <div className={styles.products}>
-                    {recipe.products.map((productInfo) => (
-                        <RecipeProduct recipeProduct={productInfo}
-                                     key={`${productInfo.product.id}-${productInfo.product.name}`}>
-                            <button className={styles.infoButton} type="button">
-                                <img src={infoButtonIcon} alt="Info Product"/>
-                            </button>
-                        </RecipeProduct>
-                    ))}
+                    <RecipeProducts products={recipe.products} />
                 </div>
             </div>
             <div className={styles.preparationContainer}>

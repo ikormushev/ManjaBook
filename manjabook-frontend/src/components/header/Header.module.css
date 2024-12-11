@@ -4,12 +4,13 @@
     padding: 1em 4em;
     align-items: center;
     justify-content: space-between;
+    flex-wrap: wrap;
 }
 
 .headerDiv div {
     display: flex;
     align-items: center;
-    gap: 2em;
+    gap: 1.5em;
 }
 
 .headerDiv div .logoImg {
@@ -39,4 +40,19 @@
 .headerDiv .headerButtons .profileImg {
     width: 2.5em;
     height: 2.5em;
+}
+
+.headerDiv .headerButtons .loginButton {
+    background-color: #ffffff;
+    padding: 0.5em;
+    border: none;
+    border-radius: 0.5em;
+    text-decoration: none;
+    color: #002737;
+    box-shadow: 0 0.1em 0.2em rgba(0, 0, 0, 0.2);
+}
+
+.headerDiv .headerButtons .loginButton:hover {
+    background-color: #105D5E;
+    color: #ffffff;
 }
