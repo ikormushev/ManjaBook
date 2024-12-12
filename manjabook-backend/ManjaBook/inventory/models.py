@@ -48,7 +48,8 @@ class Recipe(BasicRecipeInfo):
     products = models.ManyToManyField(Product, through='RecipeProduct', related_name='recipes', blank=True)
 
     slug = models.SlugField(max_length=100, unique=True, editable=False)
-    image = models.ImageField(upload_to='recipes-images/', null=True, blank=True)
+    image = models.ImageField(upload_to='recipes-images/', null=True, blank=True,
+                              default='common/default-recipe-image.jpg')
 
     created_at = models.DateTimeField(auto_now_add=True)
     last_edit_at = models.DateTimeField(auto_now=True)
