@@ -9,7 +9,8 @@ export default function AuthProvider({ children }) {
     const [authState, setAuthState] = useState({
         isAuthenticated: false,
         username: "",
-        userID: ""
+        userID: "",
+        loading: true
     });
 
     useEffect(() => {
@@ -27,12 +28,14 @@ export default function AuthProvider({ children }) {
                       isAuthenticated: data["Authenticated"],
                       username: data.username,
                       userID: data.user_id,
+                      loading: false
                   });
               } else {
                   setAuthState({
                       isAuthenticated: false,
                       username: "",
                       userID: "",
+                      loading: false
                   });
               }
           }  catch (e) {
@@ -40,6 +43,7 @@ export default function AuthProvider({ children }) {
                   isAuthenticated: false,
                   username: "",
                   userID: "",
+                  loading: false
               });
           }
         };

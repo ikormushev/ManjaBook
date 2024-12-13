@@ -1,11 +1,10 @@
 .productsContainer {
     display: flex;
+    flex-direction: column;
     gap: 1em;
-    padding: 1em 0;
 }
 
-
-.allProducts {
+.allProductsContainer {
     display: flex;
     flex-wrap: wrap;
     gap: 1em;
@@ -25,4 +24,39 @@
     display: flex;
     flex-direction: column;
     gap: 1em;
+}
+
+.productCreateContainer {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background-color: #fff;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    padding: 1em;
+    gap: 0.3em;
+    height: auto;
+}
+
+.productCreateContainer span {
+    font-weight: bold;
+}
+.productCreateContainer button {
+    padding: 0.5em;
+    color: #fff;
+    background-color: #007bff;
+    border: none;
+    border-radius: 0.5em;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.productCreateContainer button:hover {
+    background-color: #0056b3;
+}
+
+.searchContainer {
+    display: flex;
+    gap: 1em;
+    justify-content: space-between;
 }

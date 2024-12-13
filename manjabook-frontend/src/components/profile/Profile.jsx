@@ -6,6 +6,7 @@ import { Tabs, Tab, Box } from '@mui/material';
 import RecipeCard from "../recipeCard/RecipeCard.jsx";
 import defaultUserPicture from "../../assets/images/default-user-picture.png";
 import defaultRecipeImage from "../../assets/images/default-recipe-image.png";
+import Loading from "../../utils/loading/Loading.jsx";
 
 const backendURL = import.meta.env.VITE_BACKEND_URL;
 const apiProfileURL = `${backendURL}/profiles`;
@@ -45,7 +46,7 @@ export default function Profile() {
         fetchProfile();
     }, []);
 
-    if (loading) return <p>Loading...</p>;
+    if (loading) return <Loading/>;
     if (!profile) return <PageNotFound/>;
 
 

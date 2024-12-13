@@ -2,6 +2,7 @@ import {useEffect, useState} from "react";
 import RecipeCard from "../recipeCard/RecipeCard.jsx";
 import styles from './RecipesDashboard.module.css';
 import {Link} from "react-router-dom";
+import Loading from "../../utils/loading/Loading.jsx";
 
 const backendURL = import.meta.env.VITE_BACKEND_URL;
 const apiUrl = `${backendURL}/recipes/`;
@@ -28,7 +29,7 @@ export default function RecipesDashboard(){
         fetchData();
     }, []);
 
-    if (loading) return <p>Loading...</p>;
+    if (loading) return <Loading/>;
 
     return (
         <ul className={styles.recipeDashboard}>

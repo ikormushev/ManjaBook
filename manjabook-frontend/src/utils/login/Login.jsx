@@ -2,6 +2,7 @@ import {useState} from "react";
 import {useNavigate, Link} from "react-router-dom";
 import {useAuth} from "../../context/authProvider/AuthProvider.jsx";
 import {Alert, Box, Button, TextField, Typography} from '@mui/material';
+import ErrorNotification from "../errorNotification/ErrorNotification.jsx";
 
 const apiLoginURL = import.meta.env.VITE_LOGIN_BACKEND_URL;
 
@@ -66,83 +67,87 @@ export default function Login() {
         }))
     }
 
+    const clearError = () => {
+        setErrors(oldValues => ({
+            ...oldValues,
+            general: "",
+        }));
+    };
+
     return (
-        <Box
-            sx={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                minHeight: '100vh',
-                padding: 3,
-                backgroundColor: '#f4f4f4',
-            }}
-        >
+        <>
+        {errors.general && <ErrorNotification error={errors.general} clearError={clearError}/>}
             <Box
                 sx={{
-                    width: '100%',
-                    maxWidth: 400,
-                    backgroundColor: 'white',
-                    padding: 4,
-                    borderRadius: 2,
-                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    minHeight: '100vh',
+                    padding: 3,
+                    backgroundColor: '#f4f4f4',
                 }}
             >
-                <Typography variant="h4" textAlign="center" gutterBottom>
-                    Login
-                </Typography>
-
-                {errors.general && (
-                    <Alert severity="error" sx={{ mb: 2 }}>
-                        {errors.general}
-                    </Alert>
-                )}
-
                 <Box
-                    component="form"
                     sx={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: 2,
+                        width: '100%',
+                        maxWidth: 400,
+                        backgroundColor: 'white',
+                        padding: 4,
+                        borderRadius: 2,
+                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
                     }}
-                    onSubmit={handleLogin}
                 >
-                    <TextField
-                        label="Email"
-                        type="text"
-                        value={formValues.email}
-                        onChange={changeHandler}
-                        fullWidth
-                        required
-                        name="email"
-                        error={!!errors.email}
-                        helperText={errors.email}
-                    />
-                    <TextField
-                        label="Password"
-                        type="password"
-                        name="password"
-                        value={formValues.password}
-                        onChange={changeHandler}
-                        fullWidth
-                        required
-                    />
-                    <Button
-                        type="submit"
-                        variant="contained"
-                        color="primary"
-                        fullWidth
-                        sx={{ padding: 1.5 }}
-                    >
+                    <Typography variant="h4" textAlign="center" gutterBottom>
                         Login
-                    </Button>
-                </Box>
+                    </Typography>
 
-                <Typography variant="body2" textAlign="center" sx={{ mt: 2 }}>
-                    Don't have an account?{' '}
-                    (<Link to='/register'>Register</Link>)
-                </Typography>
+                    <Box
+                        component="form"
+                        sx={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: 2,
+                        }}
+                        onSubmit={handleLogin}
+                    >
+                        <TextField
+                            label="Email"
+                            type="text"
+                            value={formValues.email}
+                            onChange={changeHandler}
+                            fullWidth
+                            required
+                            name="email"
+                            error={!!errors.email}
+                            helperText={errors.email}
+                        />
+                        <TextField
+                            label="Password"
+                            type="password"
+                            name="password"
+                            value={formValues.password}
+                            onChange={changeHandler}
+                            fullWidth
+                            required
+                        />
+                        <Button
+                            type="submit"
+                            variant="contained"
+                            color="primary"
+                            fullWidth
+                            sx={{ padding: 1.5 }}
+                        >
+                            Login
+                        </Button>
+                    </Box>
+
+                    <Typography variant="body2" textAlign="center" sx={{ mt: 2 }}>
+                        Don't have an account?{' '}
+                        (<Link to='/register'>Register</Link>)
+                    </Typography>
+                </Box>
             </Box>
-        </Box>
+        </>
     );
 };

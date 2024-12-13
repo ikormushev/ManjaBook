@@ -1,8 +1,9 @@
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import styles from './ProductAdd.module.css';
 import ProductCard from "../productCard/ProductCard.jsx";
 import MultiPageModal from "../multiPageModal/MultiPageModal.jsx";
 import {FormControl, MenuItem, Select, TextField} from "@mui/material";
+import SearchBar from "../../utils/searchBar/SearchBar.jsx";
 
 const productToAddTemplate = {
     product: null,
@@ -19,10 +20,34 @@ const productTemplate = {
     shopped_from: null,
 };
 
+const backendURL = import.meta.env.VITE_BACKEND_URL;
+const apiProducts = `${backendURL}/products/`;
 
-export default function ProductAdd({products, units, onSendData, handleModalMode, showProductModal, children}) {
+export default function ProductAdd({units, onSendData,
+                                       handleModalMode, showProductModal,
+                                       children
+}) {
+    const [products, setProducts] = useState([]);
     const [currentProduct, setCurrentProduct] = useState(productToAddTemplate);
     const [activeTab, setActiveTab] = useState(0);
+
+    useEffect(() => {
+        const fetchProducts = async () => {
+            try {
+                const response = await fetch(apiProducts, {
+                    method: "GET",
+                    credentials: "include",
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    setProducts(data);
+                }
+            } catch (error) {
+                setFetchErrors(error);
+            }
+        };
+        fetchProducts();
+    }, []);
 
     const handleAdd = () => {
         if (currentProduct.product && currentProduct.unit && currentProduct.quantity) {
@@ -45,23 +70,49 @@ export default function ProductAdd({products, units, onSendData, handleModalMode
         setActiveTab(newValue);
     };
 
+    const handleSearch = async (searchTerm) => {
+        try {
+            const response = await fetch(`${apiProducts}?search=${searchTerm}`);
+
+            if (response.ok) {
+                const data = await response.json();
+                setProducts(data);
+            } else {
+                console.log(response);
+            }
+        } catch (e) {
+            console.error("Error fetching search results:", e);
+        }
+    };
+
     return (
         <div>
             {children}
             <MultiPageModal isOpen={showProductModal} onClose={handleModalMode}
                             pagesLabels={["Select Product", "Finalize Product"]}
                             activeTab={activeTab} handleTabChange={handleTabChange}>
-                <div className={styles.allProducts}>
-                    {products.map((product) => (
-                        <ProductCard product={product} key={`${product.id}-${product.name}`}>
-                            <button type="button" onClick={() => {
-                                handleSelectProduct("product", product)
-                                handleTabChange(null, 1);
-                            }}>
-                                Select
-                            </button>
-                        </ProductCard>
-                    ))}
+                <div className={styles.productsContainer}>
+                    <div className={styles.searchContainer}>
+                        <SearchBar onSearch={handleSearch} />
+
+                        <div className={styles.productCreateContainer}>
+                            <span>Product not found?</span>
+                            <button type="button">Create it</button>
+                        </div>
+                    </div>
+
+                    <div className={styles.allProductsContainer}>
+                        {products.map((product) => (
+                            <ProductCard product={product} key={`${product.id}-${product.name}`}>
+                                <button type="button" onClick={() => {
+                                    handleSelectProduct("product", product)
+                                    handleTabChange(null, 1);
+                                }}>
+                                    Select
+                                </button>
+                            </ProductCard>
+                        ))}
+                    </div>
                 </div>
 
                 <div className={styles.finalizeProductPage}>
