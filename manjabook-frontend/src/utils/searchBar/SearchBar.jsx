@@ -4,12 +4,12 @@ import defaultRecipeImage from "../../assets/images/search-button-icon.png";
 import styles from './SearchBar.module.css';
 
 export default function SearchBar({ onSearch }) {
-    const [errors, setErrors] = useState({general: ""});
+    const [searchError, setSearchError] = useState("");
     const [searchTerm, setSearchTerm] = useState("");
 
     const handleSearch = () => {
         if (searchTerm === "") {
-            setErrors({general: "Search name cannot be blank!"});
+            setSearchError("Search name cannot be blank!");
             return
         }
 
@@ -23,7 +23,7 @@ export default function SearchBar({ onSearch }) {
     };
 
     const changeHandler = (e) => {
-        setErrors({general: ""});
+        setSearchError("");
         setSearchTerm(e.target.value);
     }
     return (
@@ -35,8 +35,8 @@ export default function SearchBar({ onSearch }) {
                 onChange={changeHandler}
                 onKeyDown={handleKeyDown}
                 sx={{ width: "100%" }}
-                error={!!errors.general}
-                helperText={errors.general}
+                error={!!searchError}
+                helperText={searchError}
             />
 
             <div className={styles.buttonIconContainer}>

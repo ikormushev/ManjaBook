@@ -9,11 +9,11 @@ import editButtonIcon from "../../assets/images/edit-button-icon.png";
 import deleteButtonIcon from '../../assets/images/delete-button-icon.png';
 import Loading from "../../utils/loading/Loading.jsx";
 import RecipeCreator from "../recipeCreator/RecipeCreator.jsx";
-
-const backendURL = import.meta.env.VITE_BACKEND_URL;
-const apiRecipeDetailURL = `${backendURL}/recipes`;
+import API_ENDPOINTS from "../../apiConfig.js";
+import {useError} from "../../context/errorProvider/ErrorProvider.jsx";
 
 export default function RecipeDetail() {
+    const { setError } = useError();
     const {recipeID, recipeSlug} = useParams();
     const [recipe, setRecipe] = useState(null);
     const [editRecipe, setEditRecipe] = useState(false);
@@ -23,7 +23,7 @@ export default function RecipeDetail() {
     useEffect(() => {
         const fetchRecipe = async () => {
             try {
-                const recipeResponse = await fetch(`${apiRecipeDetailURL}/${recipeID}`, {
+                const recipeResponse = await fetch(`${API_ENDPOINTS.recipes}${recipeID}`, {
                     method: "GET",
                     credentials: "include", // later - same-origin
                 });
@@ -32,7 +32,7 @@ export default function RecipeDetail() {
                     setRecipe(data);
                 }
             } catch (e) {
-                console.log(e);
+                setError(e.message);
             } finally {
                 setLoading(false);
             }
@@ -57,7 +57,7 @@ export default function RecipeDetail() {
     const handleDeleteButton = () => {
         const fetchDelete = async () => {
             try {
-                const recipeResponse = await fetch(`${apiRecipeDetailURL}/${recipeID}/`, {
+                const recipeResponse = await fetch(`${API_ENDPOINTS.recipes}/${recipeID}/`, {
                     method: "DELETE",
                     credentials: "include", // later - same-origin
                 });
@@ -65,7 +65,7 @@ export default function RecipeDetail() {
                     navigate("/recipes");
                 }
             } catch (e) {
-                console.log(e);
+                setError(e.message);
             }
         };
 

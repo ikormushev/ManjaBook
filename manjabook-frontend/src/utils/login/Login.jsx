@@ -1,13 +1,14 @@
 import {useState} from "react";
 import {useNavigate, Link} from "react-router-dom";
 import {useAuth} from "../../context/authProvider/AuthProvider.jsx";
-import {Alert, Box, Button, TextField, Typography} from '@mui/material';
-import ErrorNotification from "../errorNotification/ErrorNotification.jsx";
-
-const apiLoginURL = import.meta.env.VITE_LOGIN_BACKEND_URL;
+import {Box, Button, TextField, Typography} from '@mui/material';
+import {useError} from "../../context/errorProvider/ErrorProvider.jsx";
+import API_ENDPOINTS from "../../apiConfig.js";
 
 export default function Login() {
-    const [errors, setErrors] = useState({ email: "", password: "", general: "" });
+    const { setError } = useError();
+
+    const [formErrors, setFormErrors] = useState({ email: "", password: "" });
     const [formValues, setFormValues] = useState({
         email: "",
         password: "",
@@ -18,18 +19,18 @@ export default function Login() {
     const handleLogin = async (e) => {
         e.preventDefault();
 
-        const newErrors = { email: "", password: "", general: "" };
+        const newErrors = { email: "", password: ""};
 
         if (!formValues.email) newErrors.email = 'Email is required';
         if (!formValues.password) newErrors.password = 'Password is required';
 
         if (newErrors.email || newErrors.password) {
-            setErrors(newErrors);
+            setFormErrors(newErrors);
             return;
         }
 
         try {
-            const response = await fetch(apiLoginURL, {
+            const response = await fetch(API_ENDPOINTS.login, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -47,16 +48,10 @@ export default function Login() {
                 });
                 navigate('/');
             } else {
-                setErrors(oldValues => ({
-                    ...oldValues,
-                    general: "Invalid email or password!",
-                }));
+                setError("Invalid email or password!");
             }
         } catch (error) {
-            setErrors(oldValues => ({
-                ...oldValues,
-                general: error.message,
-            }));
+            setError(error.message);
         }
     };
 
@@ -67,16 +62,8 @@ export default function Login() {
         }))
     }
 
-    const clearError = () => {
-        setErrors(oldValues => ({
-            ...oldValues,
-            general: "",
-        }));
-    };
-
     return (
         <>
-        {errors.general && <ErrorNotification error={errors.general} clearError={clearError}/>}
             <Box
                 sx={{
                     display: 'flex',
@@ -119,8 +106,8 @@ export default function Login() {
                             fullWidth
                             required
                             name="email"
-                            error={!!errors.email}
-                            helperText={errors.email}
+                            error={!!formErrors.email}
+                            helperText={formErrors.email}
                         />
                         <TextField
                             label="Password"

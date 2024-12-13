@@ -1,11 +1,9 @@
 import {createContext, useContext, useEffect, useState} from "react";
+import API_ENDPOINTS from "../../apiConfig.js";
 
 const AuthContext = createContext(null);
 
-const apiCheckStatus = import.meta.env.VITE_VERIFY_BACKEND_URL;
-
-
-export default function AuthProvider({ children }) {
+export default function AuthProvider({children}) {
     const [authState, setAuthState] = useState({
         isAuthenticated: false,
         username: "",
@@ -15,44 +13,44 @@ export default function AuthProvider({ children }) {
 
     useEffect(() => {
         const checkAuthStatus = async () => {
-          try {
-              const response = await fetch(apiCheckStatus, {
-                  method: "GET",
-                  credentials: "include", // later - same-origin
-              });
+            try {
+                const response = await fetch(API_ENDPOINTS.verifyStatus, {
+                    method: "GET",
+                    credentials: "include", // later - same-origin
+                });
 
-              if (response.ok) {
-                  const data = await response.json();
+                if (response.ok) {
+                    const data = await response.json();
 
-                  setAuthState({
-                      isAuthenticated: data["Authenticated"],
-                      username: data.username,
-                      userID: data.user_id,
-                      loading: false
-                  });
-              } else {
-                  setAuthState({
-                      isAuthenticated: false,
-                      username: "",
-                      userID: "",
-                      loading: false
-                  });
-              }
-          }  catch (e) {
-              setAuthState({
-                  isAuthenticated: false,
-                  username: "",
-                  userID: "",
-                  loading: false
-              });
-          }
+                    setAuthState({
+                        isAuthenticated: data["Authenticated"],
+                        username: data.username,
+                        userID: data.user_id,
+                        loading: false
+                    });
+                } else {
+                    setAuthState({
+                        isAuthenticated: false,
+                        username: "",
+                        userID: "",
+                        loading: false
+                    });
+                }
+            } catch (e) {
+                setAuthState({
+                    isAuthenticated: false,
+                    username: "",
+                    userID: "",
+                    loading: false
+                });
+            }
         };
 
         checkAuthStatus();
     }, []);
 
     return (
-        <AuthContext.Provider value={{ authState, setAuthState}}>
+        <AuthContext.Provider value={{authState, setAuthState}}>
             {children}
         </AuthContext.Provider>
     );

@@ -3,13 +3,12 @@ import {useEffect, useState} from "react";
 import PageNotFound from "../pageNotFound/PageNotFound.jsx";
 import styles from "./Profile.module.css";
 import { Tabs, Tab, Box } from '@mui/material';
-import RecipeCard from "../recipeCard/RecipeCard.jsx";
 import defaultUserPicture from "../../assets/images/default-user-picture.png";
 import defaultRecipeImage from "../../assets/images/default-recipe-image.png";
 import Loading from "../../utils/loading/Loading.jsx";
+import API_ENDPOINTS from "../../apiConfig.js";
+import {useError} from "../../context/errorProvider/ErrorProvider.jsx";
 
-const backendURL = import.meta.env.VITE_BACKEND_URL;
-const apiProfileURL = `${backendURL}/profiles`;
 
 const profileTemplate = {
     user_id: '',
@@ -20,6 +19,7 @@ const profileTemplate = {
 }
 
 export default function Profile() {
+    const { setError } = useError();
     const {userID} = useParams();
     const [profile, setProfile] = useState(profileTemplate);
     const [loading, setLoading] = useState(true);
@@ -28,16 +28,15 @@ export default function Profile() {
     useEffect(() => {
         const fetchProfile = async () => {
             try {
-                const profileResponse = await fetch(`${apiProfileURL}/${userID}`);
+                const profileResponse = await fetch(`${API_ENDPOINTS.profiles}${userID}`);
                 if (profileResponse.ok) {
                     const data = await profileResponse.json();
                     setProfile(data);
-                    // console.log(data);
                 } else {
                     setProfile(null);
                 }
             } catch (e) {
-                console.log(e.message);
+                setError(e.message);
             } finally {
                 setLoading(false);
             }

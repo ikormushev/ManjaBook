@@ -3,25 +3,24 @@ import RecipeCard from "../recipeCard/RecipeCard.jsx";
 import styles from './RecipesDashboard.module.css';
 import {Link} from "react-router-dom";
 import Loading from "../../utils/loading/Loading.jsx";
-
-const backendURL = import.meta.env.VITE_BACKEND_URL;
-const apiUrl = `${backendURL}/recipes/`;
+import API_ENDPOINTS from "../../apiConfig.js";
+import {useError} from "../../context/errorProvider/ErrorProvider.jsx";
 
 export default function RecipesDashboard(){
+    const { setError } = useError();
     const [recipes, setRecipes] = useState([]);
     const [loading, setLoading] = useState(true);
-
 
     useEffect(()=> {
         const fetchData = async () => {
             try {
-                const recipesResponse = await fetch(apiUrl);
+                const recipesResponse = await fetch(API_ENDPOINTS.recipes);
                 if (recipesResponse.ok) {
                     const data = await recipesResponse.json();
                     setRecipes(data);
                 }
             } catch (e) {
-                console.log(e.message);
+                setError(e.message);
             } finally {
                 setLoading(false);
             }

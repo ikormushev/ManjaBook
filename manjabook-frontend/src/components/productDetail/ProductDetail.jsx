@@ -15,6 +15,7 @@ export default function ProductDetail({productInfo, units, onDeleteProduct, onEd
     const handleDelete = () => {
         onDeleteProduct(product.id)
     };
+
     return (
         <div className={styles.productDetailCard}>
             <div className={styles.productInfo}>

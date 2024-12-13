@@ -1,17 +1,17 @@
 import {useNavigate} from "react-router-dom";
 import {useAuth} from "../../context/authProvider/AuthProvider.jsx";
 import styles from "./Logout.module.css";
-
-const apiLogoutApi = import.meta.env.VITE_LOGOUT_BACKEND_URL;
-
+import API_ENDPOINTS from "../../apiConfig.js";
+import {useError} from "../../context/errorProvider/ErrorProvider.jsx";
 
 export default function Logout() {
     const navigate = useNavigate();
+    const {setError} = useError();
     const { setAuthState } = useAuth();
 
     const handleLogout = async () => {
         try {
-            const response = await fetch(apiLogoutApi, {
+            const response = await fetch(API_ENDPOINTS.logout, {
                 method: 'POST',
                 credentials: 'include', // later - same-origin
             });
@@ -20,7 +20,7 @@ export default function Logout() {
                 navigate('/');
             }
         } catch (error) {
-            console.log(error);
+            setError(error.message);
         } finally {
             setAuthState({
                 isAuthenticated: false,
@@ -30,10 +30,8 @@ export default function Logout() {
         }
     };
 
-
     return (
-        <button onClick={handleLogout} className={styles.logoutButton}
-        >
+        <button onClick={handleLogout} className={styles.logoutButton}>
             Logout
         </button>
     );

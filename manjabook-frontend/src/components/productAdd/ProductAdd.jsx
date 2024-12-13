@@ -4,6 +4,8 @@ import ProductCard from "../productCard/ProductCard.jsx";
 import MultiPageModal from "../multiPageModal/MultiPageModal.jsx";
 import {FormControl, MenuItem, Select, TextField} from "@mui/material";
 import SearchBar from "../../utils/searchBar/SearchBar.jsx";
+import API_ENDPOINTS from "../../apiConfig.js";
+import {useError} from "../../context/errorProvider/ErrorProvider.jsx";
 
 const productToAddTemplate = {
     product: null,
@@ -20,13 +22,12 @@ const productTemplate = {
     shopped_from: null,
 };
 
-const backendURL = import.meta.env.VITE_BACKEND_URL;
-const apiProducts = `${backendURL}/products/`;
 
 export default function ProductAdd({units, onSendData,
                                        handleModalMode, showProductModal,
                                        children
 }) {
+    const {setError} = useError();
     const [products, setProducts] = useState([]);
     const [currentProduct, setCurrentProduct] = useState(productToAddTemplate);
     const [activeTab, setActiveTab] = useState(0);
@@ -34,7 +35,7 @@ export default function ProductAdd({units, onSendData,
     useEffect(() => {
         const fetchProducts = async () => {
             try {
-                const response = await fetch(apiProducts, {
+                const response = await fetch(API_ENDPOINTS.products, {
                     method: "GET",
                     credentials: "include",
                 });
@@ -72,7 +73,7 @@ export default function ProductAdd({units, onSendData,
 
     const handleSearch = async (searchTerm) => {
         try {
-            const response = await fetch(`${apiProducts}?search=${searchTerm}`);
+            const response = await fetch(`${API_ENDPOINTS.products}?search=${searchTerm}`);
 
             if (response.ok) {
                 const data = await response.json();
@@ -81,7 +82,7 @@ export default function ProductAdd({units, onSendData,
                 console.log(response);
             }
         } catch (e) {
-            console.error("Error fetching search results:", e);
+            setError(e.message);
         }
     };
 
@@ -137,7 +138,7 @@ export default function ProductAdd({units, onSendData,
                             type="number"
                             onChange={(e) => handleSelectProduct("quantity", e.target.value)}
                         />
-                        <FormControl small>
+                        <FormControl small="true">
                             <Select
                                 value={currentProduct.unit || ""}
                                 onChange={(e) => handleSelectProduct('unit', e.target.value)}

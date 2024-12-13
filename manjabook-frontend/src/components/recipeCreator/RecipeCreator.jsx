@@ -7,17 +7,15 @@ import ProductDetail from "../productDetail/ProductDetail.jsx";
 import addButtonIcon from "../../assets/images/add-button-icon.png";
 import defaultRecipeImage from "../../assets/images/default-recipe-image.png";
 import ErrorNotification from "../../utils/errorNotification/ErrorNotification.jsx";
-
-const backendURL = import.meta.env.VITE_BACKEND_URL;
-const apiRecipeCreate = `${backendURL}/recipes/`;
-const apiUnits = `${backendURL}/units/`;
+import {useError} from "../../context/errorProvider/ErrorProvider.jsx";
+import API_ENDPOINTS from "../../apiConfig.js";
 
 export default function RecipeCreator({ recipeData=null }) {
+    const { setError } = useError();
     const navigate = useNavigate();
 
     const [showProductModal, setShowProductModal] = useState(false);
     const [units, setUnits] = useState([]);
-    const [fetchErrors, setFetchErrors] = useState(null);
     const [formErrors, setFormErrors] = useState({});
 
     const [formValues, setFormValues] = useState(() => {
@@ -72,8 +70,8 @@ export default function RecipeCreator({ recipeData=null }) {
 
         try {
             const response = await fetch(recipeData ?
-                `${apiRecipeCreate}${recipeData.id}/`:
-                apiRecipeCreate, {
+                `${API_ENDPOINTS.recipes}${recipeData.id}`:
+                API_ENDPOINTS.recipes, {
                 method: recipeData ? "PUT": "POST",
                 body: formData,
                 credentials: "include",
@@ -81,12 +79,9 @@ export default function RecipeCreator({ recipeData=null }) {
 
             if (response.ok) {
                 navigate("/recipes");
-            } else {
-                console.log(response);
-                setFetchErrors(response.error.message);
             }
         } catch (error) {
-            setFetchErrors(error.message);
+            setError(error.message);
         }
     };
 
@@ -105,7 +100,7 @@ export default function RecipeCreator({ recipeData=null }) {
     useEffect(() => {
         const fetchUnits = async () => {
             try {
-                const response = await fetch(apiUnits, {
+                const response = await fetch(API_ENDPOINTS.units, {
                     method: "GET",
                     credentials: "include",
                 });
@@ -115,7 +110,7 @@ export default function RecipeCreator({ recipeData=null }) {
                     setUnits(data);
                 }
             } catch (e) {
-                setFetchErrors(e.message);
+                setError(e.message);
             }
         };
 
@@ -144,13 +139,8 @@ export default function RecipeCreator({ recipeData=null }) {
         setShowProductModal(!showProductModal);
     };
 
-    const clearError = () => {
-        setFetchErrors(null);
-    };
-
     return (
         <>
-        {fetchErrors && <ErrorNotification error={fetchErrors} clearError={clearError}/>}
             <Box
                 component="form"
                 encType="multipart/form-data"
@@ -307,10 +297,7 @@ export default function RecipeCreator({ recipeData=null }) {
 
                             ))}
                         </div>
-                        <button
-                            type="submit"
-                            className={`${styles.submitButton} ${styles.submitButtonHover}`}
-                        >
+                        <button type="submit" className={`${styles.submitButton} ${styles.submitButtonHover}`}>
                             Submit Recipe
                         </button>
                     </div>

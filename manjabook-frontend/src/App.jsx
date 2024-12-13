@@ -12,32 +12,39 @@ import Profile from "./components/profile/Profile.jsx";
 import RecipeCreator from "./components/recipeCreator/RecipeCreator.jsx";
 import ProtectedRoute from "./utils/protectedRoute/ProtectedRoute.jsx";
 import RecipeDetail from "./components/recipeDetail/RecipeDetail.jsx";
+import {useError} from "./context/errorProvider/ErrorProvider.jsx";
+import ErrorNotification from "./utils/errorNotification/ErrorNotification.jsx";
 
 export default function App() {
+    const { error, clearError } = useError();
+
     return (
-        <AuthProvider>
-            <Routes>
-                <Route element={<DefaultLayout/>}>
-                    <Route path="/" element={<Home/>}/>
-                    <Route path="/recipes" element={<RecipesDashboard/>}/>
-                    <Route path="/recipes/:recipeID/:recipeSlug" element={<RecipeDetail/>}/>
-                    <Route path="/profile/:userID" element={<Profile/>}/>
+        <>
+            {error && <ErrorNotification error={error} clearError={clearError} />}
+            <AuthProvider>
+                <Routes>
+                    <Route element={<DefaultLayout/>}>
+                        <Route path="/" element={<Home/>}/>
+                        <Route path="/recipes" element={<RecipesDashboard/>}/>
+                        <Route path="/recipes/:recipeID/:recipeSlug" element={<RecipeDetail/>}/>
+                        <Route path="/profile/:userID" element={<Profile/>}/>
 
-                    <Route element={<ProtectedRoute/>}>
-                        <Route path="/create-recipe" element={<RecipeCreator/>}/>
+                        <Route element={<ProtectedRoute/>}>
+                            <Route path="/create-recipe" element={<RecipeCreator/>}/>
+                        </Route>
+
+                        <Route path="*" element={<PageNotFound/>}/>
                     </Route>
 
-                    <Route path="*" element={<PageNotFound/>}/>
-                </Route>
-
-                <Route element={<BlankLayout/>}>
-                    <Route path="/register" element={<Register/>} exact/>
-                    <Route path="/login" element={<Login/>} exact/>
-                    <Route element={<ProtectedRoute/>}>
-                        <Route path="/logout" element={<Logout/>} exact/>
+                    <Route element={<BlankLayout/>}>
+                        <Route path="/register" element={<Register/>} exact/>
+                        <Route path="/login" element={<Login/>} exact/>
+                        <Route element={<ProtectedRoute/>}>
+                            <Route path="/logout" element={<Logout/>} exact/>
+                        </Route>
                     </Route>
-                </Route>
-            </Routes>
-        </AuthProvider>
+                </Routes>
+            </AuthProvider>
+        </>
     );
 };

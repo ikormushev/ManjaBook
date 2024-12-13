@@ -1,11 +1,14 @@
 import {useState} from "react";
 import {Link, useNavigate} from "react-router-dom";
-import {Alert, Box, Button, TextField, Typography} from "@mui/material";
+import {Box, Button, TextField, Typography} from "@mui/material";
+import API_ENDPOINTS from "../../apiConfig.js";
+import {useError} from "../../context/errorProvider/ErrorProvider.jsx";
 
-const apiRegisterURL = import.meta.env.VITE_REGISTER_BACKEND_URL;
 
 export default function Register() {
-    const [errors, setErrors] = useState({ email: "", username: "", password: "", general: "" });
+    const {setError} = useError();
+
+    const [formErrors, setFormErrors] = useState({ email: "", username: "", password: "" });
     const [formValues, setFormValues] = useState({
         email: "",
         username: "",
@@ -23,12 +26,12 @@ export default function Register() {
         if (!formValues.password) newErrors.password = 'Password is required';
 
         if (newErrors.email || newErrors.username || newErrors.password) {
-            setErrors(newErrors);
+            setFormErrors(newErrors);
             return;
         }
 
         try {
-            const response = await fetch(apiRegisterURL, {
+            const response = await fetch(API_ENDPOINTS.register, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -41,17 +44,14 @@ export default function Register() {
                 navigate('/login');
             } else {
                 const errorData = await response.json();
-                console.log(errorData)
-                setErrors((oldValues) => ({
+
+                setFormErrors((oldValues) => ({
                     ...oldValues,
                     ...errorData
                 }));
             }
         } catch (error) {
-            setErrors(oldValues => ({
-                ...oldValues,
-                general: error.message,
-            }));
+            setError(error.message);
         }
     };
 
@@ -61,7 +61,7 @@ export default function Register() {
             [e.target.name]: e.target.value,
         }))
 
-        setErrors((oldValues) => ({...oldValues, [e.target.name]: "", general: ""}));
+        setFormErrors((oldValues) => ({...oldValues, [e.target.name]: ""}));
     }
 
     return (
@@ -90,12 +90,6 @@ export default function Register() {
                     Register
                 </Typography>
 
-                {errors.general && (
-                    <Alert severity="error" sx={{ mb: 2 }}>
-                        {errors.general}
-                    </Alert>
-                )}
-
                 <Box
                     component="form"
                     sx={{
@@ -113,8 +107,8 @@ export default function Register() {
                         fullWidth
                         required
                         name="email"
-                        error={!!errors.email}
-                        helperText={errors.email}
+                        error={!!formErrors.email}
+                        helperText={formErrors.email}
                     />
                     <TextField
                         label="Username"
@@ -124,8 +118,8 @@ export default function Register() {
                         onChange={changeHandler}
                         fullWidth
                         required
-                        error={!!errors.username}
-                        helperText={errors.username}
+                        error={!!formErrors.username}
+                        helperText={formErrors.username}
                     />
                     <TextField
                         label="Password"
@@ -135,8 +129,8 @@ export default function Register() {
                         onChange={changeHandler}
                         fullWidth
                         required
-                        error={!!errors.password}
-                        helperText={errors.password}
+                        error={!!formErrors.password}
+                        helperText={formErrors.password}
                     />
                     <Button
                         type="submit"
