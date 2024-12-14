@@ -9,6 +9,7 @@ export const API_ENDPOINTS = {
     profiles: `${API_BASE_URL}/profiles/`,
     recipes: `${API_BASE_URL}/recipes/`,
     units: `${API_BASE_URL}/units/`,
+    shops: `${API_BASE_URL}/shops/`,
 };
 
 export default API_ENDPOINTS;

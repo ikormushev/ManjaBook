@@ -16,16 +16,6 @@
     gap: 1em;
 }
 
-.selectedProduct {
-
-}
-
-.selectedProductInfo {
-    display: flex;
-    flex-direction: column;
-    gap: 1em;
-}
-
 .productCreateContainer {
     display: flex;
     flex-direction: column;
@@ -59,4 +49,24 @@
     display: flex;
     gap: 1em;
     justify-content: space-between;
+}
+
+.createProductContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 1em;
+}
+
+.createProductHeader {
+    display: flex;
+    align-items: center;
+    gap: 1em;
+}
+
+.createProductHeader button {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    border-radius: 0.5em;
+    width: 3em;
 }

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import {TextField, IconButton, Box} from "@mui/material";
-import defaultRecipeImage from "../../assets/images/search-button-icon.png";
+import searchButtonIcon from "../../assets/images/search-button-icon.png";
 import styles from './SearchBar.module.css';
 
 export default function SearchBar({ onSearch }) {
@@ -41,7 +41,7 @@ export default function SearchBar({ onSearch }) {
 
             <div className={styles.buttonIconContainer}>
                 <IconButton onClick={handleSearch}>
-                    <img src={defaultRecipeImage} alt="search" />
+                    <img src={searchButtonIcon} alt="search" />
                 </IconButton>
             </div>
         </Box>

@@ -5,13 +5,14 @@ import {Link} from "react-router-dom";
 import Loading from "../../utils/loading/Loading.jsx";
 import API_ENDPOINTS from "../../apiConfig.js";
 import {useError} from "../../context/errorProvider/ErrorProvider.jsx";
+import SearchBar from "../../utils/searchBar/SearchBar.jsx";
 
-export default function RecipesDashboard(){
-    const { setError } = useError();
+export default function RecipesDashboard() {
+    const {setError} = useError();
     const [recipes, setRecipes] = useState([]);
     const [loading, setLoading] = useState(true);
 
-    useEffect(()=> {
+    useEffect(() => {
         const fetchData = async () => {
             try {
                 const recipesResponse = await fetch(API_ENDPOINTS.recipes);
@@ -30,17 +31,33 @@ export default function RecipesDashboard(){
 
     if (loading) return <Loading/>;
 
+    const handleSearch = async (searchTerm) => {
+        try {
+            const response = await fetch(`${API_ENDPOINTS.recipes}?search=${searchTerm}`);
+
+            if (response.ok) {
+                const data = await response.json();
+                setRecipes(data);
+            }
+        } catch (e) {
+            setError(e.message);
+        }
+    };
+
     return (
-        <ul className={styles.recipeDashboard}>
-            {recipes.map((recipe) =>
-                <Link 
-                    to={`${recipe.id}/${recipe.slug}`}
-                    key={recipe.id}
-                    style={{ textDecoration: 'none', color: 'inherit' }}
-                >
-                    {RecipeCard(recipe)}
-                </Link>
-            )}
-        </ul>
+        <div className={styles.recipesContainer}>
+            <SearchBar onSearch={handleSearch} />
+            <ul className={styles.recipeDashboard}>
+                {recipes.map((recipe) =>
+                    <Link
+                        to={`${recipe.id}/${recipe.slug}`}
+                        key={recipe.id}
+                        style={{textDecoration: 'none', color: 'inherit'}}
+                    >
+                        {RecipeCard(recipe)}
+                    </Link>
+                )}
+            </ul>
+        </div>
     );
 };

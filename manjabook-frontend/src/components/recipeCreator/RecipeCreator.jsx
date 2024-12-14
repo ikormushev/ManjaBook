@@ -176,9 +176,8 @@ export default function RecipeCreator({ recipeData=null }) {
                             id="portions"
                             name="portions"
                             type="number"
-                            value={formValues.portions}
+                            value={formValues.portions  || ''}
                             onChange={changeHandler}
-                            placeholder="0"
                             fullWidth
                             error={!!formErrors.portions}
                             helperText={formErrors.portions || ''}
@@ -192,9 +191,8 @@ export default function RecipeCreator({ recipeData=null }) {
                             id="time_to_prepare"
                             name="time_to_prepare"
                             type="number"
-                            value={formValues.time_to_prepare}
+                            value={formValues.time_to_prepare  || ''}
                             onChange={changeHandler}
-                            placeholder="0"
                             fullWidth
                             error={!!formErrors.time_to_prepare}
                             helperText={formErrors.time_to_prepare || ''}
@@ -208,9 +206,8 @@ export default function RecipeCreator({ recipeData=null }) {
                             id="time_to_cook"
                             name="time_to_cook"
                             type="number"
-                            value={formValues.time_to_cook}
+                            value={formValues.time_to_cook  || ''}
                             onChange={changeHandler}
-                            placeholder="0"
                             fullWidth
                             error={!!formErrors.time_to_cook}
                             helperText={formErrors.time_to_cook || ''}

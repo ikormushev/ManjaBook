@@ -1,12 +1,14 @@
 import {useState} from "react";
 import {Link, useNavigate} from "react-router-dom";
-import {Box, Button, TextField, Typography} from "@mui/material";
+import {Box, Button, CircularProgress, TextField, Typography} from "@mui/material";
 import API_ENDPOINTS from "../../apiConfig.js";
 import {useError} from "../../context/errorProvider/ErrorProvider.jsx";
 
 
 export default function Register() {
+    const navigate = useNavigate();
     const {setError} = useError();
+    const [loading, setLoading] = useState(false);
 
     const [formErrors, setFormErrors] = useState({ email: "", username: "", password: "" });
     const [formValues, setFormValues] = useState({
@@ -14,7 +16,6 @@ export default function Register() {
         username: "",
         password: "",
     })
-    const navigate = useNavigate();
 
     const handleRegister = async (e) => {
         e.preventDefault();
@@ -30,6 +31,7 @@ export default function Register() {
             return;
         }
 
+        setLoading(true);
         try {
             const response = await fetch(API_ENDPOINTS.register, {
                 method: 'POST',
@@ -52,6 +54,8 @@ export default function Register() {
             }
         } catch (error) {
             setError(error.message);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -109,6 +113,7 @@ export default function Register() {
                         name="email"
                         error={!!formErrors.email}
                         helperText={formErrors.email}
+                        disabled={loading}
                     />
                     <TextField
                         label="Username"
@@ -120,6 +125,7 @@ export default function Register() {
                         required
                         error={!!formErrors.username}
                         helperText={formErrors.username}
+                        disabled={loading}
                     />
                     <TextField
                         label="Password"
@@ -131,6 +137,7 @@ export default function Register() {
                         required
                         error={!!formErrors.password}
                         helperText={formErrors.password}
+                        disabled={loading}
                     />
                     <Button
                         type="submit"
@@ -138,8 +145,9 @@ export default function Register() {
                         color="primary"
                         fullWidth
                         sx={{ padding: 1.5 }}
+                        disabled={loading}
                     >
-                        Register
+                        {loading ? <CircularProgress size={24} /> : "Register"}
                     </Button>
                 </Box>
 

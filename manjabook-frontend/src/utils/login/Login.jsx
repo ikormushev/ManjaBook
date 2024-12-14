@@ -1,12 +1,13 @@
 import {useState} from "react";
 import {useNavigate, Link} from "react-router-dom";
 import {useAuth} from "../../context/authProvider/AuthProvider.jsx";
-import {Box, Button, TextField, Typography} from '@mui/material';
+import {Box, Button, CircularProgress, TextField, Typography} from '@mui/material';
 import {useError} from "../../context/errorProvider/ErrorProvider.jsx";
 import API_ENDPOINTS from "../../apiConfig.js";
 
 export default function Login() {
     const { setError } = useError();
+    const [loading, setLoading] = useState(false);
 
     const [formErrors, setFormErrors] = useState({ email: "", password: "" });
     const [formValues, setFormValues] = useState({
@@ -28,6 +29,8 @@ export default function Login() {
             setFormErrors(newErrors);
             return;
         }
+
+        setLoading(true);
 
         try {
             const response = await fetch(API_ENDPOINTS.login, {
@@ -52,6 +55,8 @@ export default function Login() {
             }
         } catch (error) {
             setError(error.message);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -108,6 +113,7 @@ export default function Login() {
                             name="email"
                             error={!!formErrors.email}
                             helperText={formErrors.email}
+                            disabled={loading}
                         />
                         <TextField
                             label="Password"
@@ -117,6 +123,7 @@ export default function Login() {
                             onChange={changeHandler}
                             fullWidth
                             required
+                            disabled={loading}
                         />
                         <Button
                             type="submit"
@@ -124,8 +131,9 @@ export default function Login() {
                             color="primary"
                             fullWidth
                             sx={{ padding: 1.5 }}
+                            disabled={loading}
                         >
-                            Login
+                            {loading ? <CircularProgress size={24} /> : "Login"}
                         </Button>
                     </Box>
 
