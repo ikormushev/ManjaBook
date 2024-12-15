@@ -13,7 +13,7 @@ export default function ProductDetail({productInfo, units, onDeleteProduct, onEd
     };
 
     const handleDelete = () => {
-        onDeleteProduct(product.id)
+        onDeleteProduct(product.id, unit.id)
     };
 
     return (

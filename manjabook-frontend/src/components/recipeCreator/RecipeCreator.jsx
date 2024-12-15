@@ -1,12 +1,11 @@
 import {useEffect, useState} from "react";
 import {useNavigate} from "react-router-dom";
-import { Box, TextField, InputLabel } from '@mui/material';
+import {Box, TextField, InputLabel, Typography, CircularProgress, Button} from '@mui/material';
 import styles from "./RecipeCreator.module.css";
 import ProductAdd from "../productAdd/ProductAdd.jsx";
 import ProductDetail from "../productDetail/ProductDetail.jsx";
 import addButtonIcon from "../../assets/images/add-button-icon.png";
 import defaultRecipeImage from "../../assets/images/default-recipe-image.png";
-import ErrorNotification from "../../utils/errorNotification/ErrorNotification.jsx";
 import {useError} from "../../context/errorProvider/ErrorProvider.jsx";
 import API_ENDPOINTS from "../../apiConfig.js";
 
@@ -16,12 +15,21 @@ export default function RecipeCreator({ recipeData=null }) {
 
     const [showProductModal, setShowProductModal] = useState(false);
     const [units, setUnits] = useState([]);
-    const [formErrors, setFormErrors] = useState({});
 
+    const [formErrors, setFormErrors] = useState({
+        name: "",
+        quick_description: "",
+        products: "",
+        preparation: "",
+        portions: "",
+        time_to_prepare: "",
+        time_to_cook: "",
+        image: "",
+    });
     const [formValues, setFormValues] = useState(() => {
         const recipeTemplate = {
             name: "",
-            description: "",
+            quick_description: "",
             products: [],
             preparation: "",
             portions: 0,
@@ -32,27 +40,16 @@ export default function RecipeCreator({ recipeData=null }) {
 
         return recipeData ? { ...recipeTemplate, ...recipeData, image: null } : recipeTemplate;
     });
+    const [loadingFormValues, setLoadingFormValues] = useState(false);
 
     const [selectedProducts, setSelectedProducts] = useState(recipeData ? recipeData.products : []);
 
-    const validateForms = (values) => {
-        const errors = {};
-        if (!values.name.trim()) {
-            errors.name = "Name is required!";
-        }
-        return errors;
-    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-
-        const errors = validateForms(formValues);
-        if (Object.keys(errors).length > 0) {
-            setFormErrors(errors);
-            return null;
-        }
-
+        setLoadingFormValues(true);
         const formData = new FormData();
+
         if (!formValues.image) {
             delete formValues.image;
         }
@@ -79,9 +76,15 @@ export default function RecipeCreator({ recipeData=null }) {
 
             if (response.ok) {
                 navigate("/recipes");
+            } else {
+                const data = await response.json();
+
+                setFormErrors(oldValues => ({...oldValues, ...data}));
             }
         } catch (error) {
             setError(error.message);
+        } finally {
+            setLoadingFormValues(false);
         }
     };
 
@@ -118,12 +121,29 @@ export default function RecipeCreator({ recipeData=null }) {
     }, []);
 
     const handleSelectedProducts = (data) => {
-        setSelectedProducts(oldValues => [...oldValues, data]);
+        setSelectedProducts((oldValues) => {
+            const existingIndex = oldValues.findIndex(
+                (itemInfo) =>
+                    itemInfo.product.id === data.product.id &&
+                    itemInfo.unit.id === data.unit.id
+            );
+
+            if (existingIndex !== -1) {
+                const updatedProducts = [...oldValues];
+                updatedProducts[existingIndex] = {
+                    ...updatedProducts[existingIndex],
+                    quantity: updatedProducts[existingIndex].quantity + data.quantity,
+                };
+                return updatedProducts;
+            }
+
+            return [...oldValues, data];
+        });
     };
 
-    const handleDeleteProduct = (itemID) => {
+    const handleDeleteProduct = (itemID, unitID) => {
         setSelectedProducts(oldValues =>
-            oldValues.filter((itemInfo) => itemInfo.product.id !== itemID));
+            oldValues.filter((itemInfo) => itemInfo.product.id !== itemID || itemInfo.unit.id !== unitID));
     };
 
     const handleEditProduct = (data) => {
@@ -161,111 +181,106 @@ export default function RecipeCreator({ recipeData=null }) {
                         {recipeData ?
                             <img src={recipeData.image} alt="recipe_image"/> :
                             <img src={defaultRecipeImage} alt="recipe_image"/>}
+
+                        <div className={styles.imageUploadOverlay}>
+                            <InputLabel htmlFor="image">Upload Image</InputLabel>
+                            <input
+                                id="image"
+                                name="image"
+                                accept="image/*"
+                                type="file"
+                                onChange={changeHandler}
+                                hidden
+                            />
+                        </div>
                     </div>
-                    <InputLabel htmlFor="image">Upload Image:</InputLabel>
-                    <input
-                        id="image"
-                        name="image"
-                        type="file"
+                    {formErrors.image ? <Typography variant="caption" color="error">
+                        {formErrors.image}
+                    </Typography>: formValues.image && <Typography variant="caption" color="success">
+                        Image uploaded!
+                    </Typography>}
+                    <TextField
+                        name="portions"
+                        type="number"
+                        value={formValues.portions  || ''}
                         onChange={changeHandler}
+                        fullWidth
+                        error={!!formErrors.portions}
+                        helperText={formErrors.portions || ''}
+                        variant="outlined"
+                        label="Portions"
+                        required
                     />
 
-                    <div>
-                        <InputLabel htmlFor="portions">Portions:</InputLabel>
-                        <TextField
-                            id="portions"
-                            name="portions"
-                            type="number"
-                            value={formValues.portions  || ''}
-                            onChange={changeHandler}
-                            fullWidth
-                            error={!!formErrors.portions}
-                            helperText={formErrors.portions || ''}
-                            variant="outlined"
-                        />
-                    </div>
+                    <TextField
+                        name="time_to_prepare"
+                        type="number"
+                        value={formValues.time_to_prepare  || ''}
+                        onChange={changeHandler}
+                        fullWidth
+                        error={!!formErrors.time_to_prepare}
+                        helperText={formErrors.time_to_prepare || ''}
+                        variant="outlined"
+                        label="Time to Prepare"
+                        required
+                    />
 
-                    <div>
-                        <InputLabel htmlFor="time_to_prepare">Time to Prepare:</InputLabel>
-                        <TextField
-                            id="time_to_prepare"
-                            name="time_to_prepare"
-                            type="number"
-                            value={formValues.time_to_prepare  || ''}
-                            onChange={changeHandler}
-                            fullWidth
-                            error={!!formErrors.time_to_prepare}
-                            helperText={formErrors.time_to_prepare || ''}
-                            variant="outlined"
-                        />
-                    </div>
-
-                    <div>
-                        <InputLabel htmlFor="time_to_cook">Time to Cook:</InputLabel>
-                        <TextField
-                            id="time_to_cook"
-                            name="time_to_cook"
-                            type="number"
-                            value={formValues.time_to_cook  || ''}
-                            onChange={changeHandler}
-                            fullWidth
-                            error={!!formErrors.time_to_cook}
-                            helperText={formErrors.time_to_cook || ''}
-                            variant="outlined"
-                        />
-                    </div>
+                    <TextField
+                        name="time_to_cook"
+                        type="number"
+                        value={formValues.time_to_cook  || ''}
+                        onChange={changeHandler}
+                        fullWidth
+                        error={!!formErrors.time_to_cook}
+                        helperText={formErrors.time_to_cook || ''}
+                        variant="outlined"
+                        label="Time to Cook"
+                        required
+                    />
                 </div>
 
                 <div className={styles.recipeBodyContainer}>
                     <div className={styles.recipeBody}>
-                        <div>
-                            <InputLabel htmlFor="name">Recipe Name:</InputLabel>
-                            <TextField
-                                id="name"
-                                name="name"
-                                value={formValues.name}
-                                onChange={changeHandler}
-                                placeholder="Recipe Name"
-                                fullWidth
-                                error={!!formErrors.name}
-                                helperText={formErrors.name || ''}
-                                variant="outlined"
-                            />
-                        </div>
+                        <TextField
+                            name="name"
+                            value={formValues.name}
+                            onChange={changeHandler}
+                            fullWidth
+                            error={!!formErrors.name}
+                            helperText={formErrors.name || ''}
+                            variant="outlined"
+                            label="Name"
+                            required
+                        />
 
-                        <div>
-                            <InputLabel htmlFor="quick_description">Description:</InputLabel>
-                            <TextField
-                                id="quick_description"
-                                name="quick_description"
-                                value={formValues.quick_description}
-                                onChange={changeHandler}
-                                placeholder="Description"
-                                fullWidth
-                                multiline
-                                rows={4}
-                                error={!!formErrors.quick_description}
-                                helperText={formErrors.quick_description || ''}
-                                variant="outlined"
-                            />
-                        </div>
+                        <TextField
+                            name="quick_description"
+                            value={formValues.quick_description}
+                            onChange={changeHandler}
+                            fullWidth
+                            multiline
+                            rows={4}
+                            error={!!formErrors.quick_description}
+                            helperText={formErrors.quick_description || ''}
+                            variant="outlined"
+                            label="Description"
+                            required
+                        />
 
-                        <div>
-                            <InputLabel htmlFor="preparation">Preparation:</InputLabel>
-                            <TextField
-                                id="preparation"
-                                name="preparation"
-                                value={formValues.preparation}
-                                onChange={changeHandler}
-                                placeholder="Preparation"
-                                fullWidth
-                                multiline
-                                rows={4}
-                                error={!!formErrors.preparation}
-                                helperText={formErrors.preparation || ''}
-                                variant="outlined"
-                            />
-                        </div>
+                        <TextField
+                            id="preparation"
+                            name="preparation"
+                            value={formValues.preparation}
+                            onChange={changeHandler}
+                            fullWidth
+                            multiline
+                            rows={4}
+                            error={!!formErrors.preparation}
+                            helperText={formErrors.preparation || ''}
+                            variant="outlined"
+                            label="Preparation"
+                            required
+                        />
                     </div>
 
                     <div className={styles.selectedProducts}>
@@ -294,9 +309,23 @@ export default function RecipeCreator({ recipeData=null }) {
 
                             ))}
                         </div>
-                        <button type="submit" className={`${styles.submitButton} ${styles.submitButtonHover}`}>
-                            Submit Recipe
-                        </button>
+                    </div>
+
+                    <div className={styles.submitButtonContainer}>
+                        <Button
+                            type="submit"
+                            variant="contained"
+                            color="primary"
+                            sx={{
+                                padding: 1.5,
+                                '&:hover': {
+                                    backgroundColor: '#45a049',
+                                },
+                            }}
+                            disabled={loadingFormValues}
+                        >
+                            {loadingFormValues ? <CircularProgress size={24}/> : "Submit Recipe"}
+                        </Button>
                     </div>
                 </div>
             </Box>

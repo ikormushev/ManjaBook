@@ -10,6 +10,7 @@ export const API_ENDPOINTS = {
     recipes: `${API_BASE_URL}/recipes/`,
     units: `${API_BASE_URL}/units/`,
     shops: `${API_BASE_URL}/shops/`,
+    customUnits: `${API_BASE_URL}/custom-units/`,
 };
 
 export default API_ENDPOINTS;

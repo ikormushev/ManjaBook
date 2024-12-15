@@ -57,7 +57,7 @@ export default function RecipeDetail() {
     const handleDeleteButton = () => {
         const fetchDelete = async () => {
             try {
-                const recipeResponse = await fetch(`${API_ENDPOINTS.recipes}/${recipeID}/`, {
+                const recipeResponse = await fetch(`${API_ENDPOINTS.recipes}${recipeID}/`, {
                     method: "DELETE",
                     credentials: "include", // later - same-origin
                 });
