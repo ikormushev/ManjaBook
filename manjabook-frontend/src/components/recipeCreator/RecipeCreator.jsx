@@ -306,7 +306,6 @@ export default function RecipeCreator({ recipeData=null }) {
                                                    units={units}
                                     />
                                 </div>
-
                             ))}
                         </div>
                     </div>

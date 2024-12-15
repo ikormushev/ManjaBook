@@ -16,6 +16,7 @@ import SearchBar from "../../utils/searchBar/SearchBar.jsx";
 import API_ENDPOINTS from "../../apiConfig.js";
 import {useError} from "../../context/errorProvider/ErrorProvider.jsx";
 import leftButtonIcon from "../../assets/images/left-button-icon.png";
+import CreateCustomProduct from "../createCustomProduct/CreateCustomProduct.jsx";
 
 
 export default function ProductAdd({units, onSendData, handleModalMode, showProductModal, children}) {
@@ -28,10 +29,8 @@ export default function ProductAdd({units, onSendData, handleModalMode, showProd
         quantity: 0,
         custom_unit: null,
     });
-    const [currentProductErrors, setCurrentProductErrors] = useState({product: "", unit: "", quantity: ""});
 
-    const [createProductState, setCreateProductState] = useState(false);
-    const [createProductLoading, setCreateProductLoading] = useState(false);
+    const [currentProductErrors, setCurrentProductErrors] = useState({product: "", unit: "", quantity: ""});
     const [createProductErrors, setCreateProductErrors] = useState({
         name: [],
         brand: [],
@@ -46,6 +45,7 @@ export default function ProductAdd({units, onSendData, handleModalMode, showProd
         fibre: [],
         shopped_from: []
     });
+    const [createProductState, setCreateProductState] = useState(false);
     const [createProductFormValues, setCreateProductFormValues] = useState({
         name: "",
         brand: "",
@@ -61,25 +61,11 @@ export default function ProductAdd({units, onSendData, handleModalMode, showProd
         shopped_from: []
     });
 
-    const [shops, setShops] = useState([]);
-    const choices = [{name: "Grams", abbreviation: "g"},
-        {name: "Milliliters", abbreviation: "ml"}];
-
     const [createCustomUnit, setCreateCustomUnit] = useState({unit: null,
         custom_convert_to_base_rate: 0});
     const [createCustomUnitState, setCreateCustomUnitState] = useState(false);
     const [createCustomUnitErrors, setCreateCustomUnitErrors] = useState({unit: "",
         custom_convert_to_base_rate: ""});
-
-    const handleCreateCustomUnitState = () => {
-        if (!createCustomUnitState) {
-            handleCreateCustomUnitFormValues("unit", currentProduct.unit.id);
-        } else {
-            handleCreateCustomUnitFormValues("unit", null);
-        }
-
-        setCreateCustomUnitState(!createCustomUnitState);
-    };
 
     useEffect(() => {
         const fetchProducts = async () => {
@@ -96,20 +82,7 @@ export default function ProductAdd({units, onSendData, handleModalMode, showProd
                 setError(error);
             }
         };
-        const fetchShops = async () => {
-            try {
-                const response = await fetch(API_ENDPOINTS.shops);
 
-                if (response.ok) {
-                    const data = await response.json();
-                    setShops(data);
-                }
-            } catch (e) {
-                setError(e.message);
-            }
-        };
-
-        fetchShops();
         fetchProducts();
     }, []);
 
@@ -117,7 +90,7 @@ export default function ProductAdd({units, onSendData, handleModalMode, showProd
         setCurrentProductErrors(oldValues => ({...oldValues, [field]: message}));
     };
 
-    const handleAdd = (e) => {
+    const handleAddSelectedProduct = (e) => {
         e.preventDefault();
         e.stopPropagation();
         if (currentProduct.quantity <= 0) {
@@ -151,19 +124,23 @@ export default function ProductAdd({units, onSendData, handleModalMode, showProd
         }
     };
 
-    const handleSelectProduct = (targetName, targetValue) => {
+    const handleSelectProductFormValues = (targetName, targetValue) => {
         handleAddErrors(targetName, "");
         setCurrentProduct((oldValues) => (
             {
                 ...oldValues, [targetName]: targetValue
             }));
+
+        if (targetName === "unit") {
+            handleSelectProductFormValues("custom_unit", null);
+        }
     };
 
     const handleTabChange = (event, newValue) => {
         setActiveTab(newValue);
     };
 
-    const handleSearch = async (searchTerm) => {
+    const handleSearchSubmit = async (searchTerm) => {
         try {
             const response = await fetch(`${API_ENDPOINTS.products}?search=${searchTerm}`);
 
@@ -174,10 +151,6 @@ export default function ProductAdd({units, onSendData, handleModalMode, showProd
         } catch (e) {
             setError(e.message);
         }
-    };
-
-    const openCreateProductMode = () => {
-        setCreateProductState(true);
     };
 
     const closeCreateProductMode = () => {
@@ -211,71 +184,33 @@ export default function ProductAdd({units, onSendData, handleModalMode, showProd
             shopped_from: []
         });
     };
+    const redirectFromCreateProductMode = () => {
+        handleTabChange(null, 1);
+        closeCreateProductMode();
+    }
 
     const resetModal = () => {
         closeCreateProductMode();
         handleTabChange(null, 0);
+        setCurrentProduct({
+            product: null,
+            unit: null,
+            quantity: 0,
+            custom_unit: null,
+        });
+        setCurrentProductErrors({product: "", unit: "", quantity: ""});
         handleModalMode();
     };
 
-    const handleCreateProduct = (e) => {
-        setCreateProductLoading(true);
-        e.preventDefault();
-        e.stopPropagation();
-
-        const handleSubmit = async (e) => {
-            const shopIDs = createProductFormValues.shopped_from.map((shop) => shop.id);
-            const formData = {...createProductFormValues, shopped_from: shopIDs};
-
-            try {
-                const response = await fetch(API_ENDPOINTS.products, {
-                    method: "POST",
-                    body: JSON.stringify(formData),
-                    credentials: "include",
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                });
-
-                if (response.ok) {
-                    const data = await response.json();
-                    const productData = {
-                        ...data,
-                        shopped_from: createProductFormValues.shopped_from
-                    };
-                    handleSelectProduct('product', productData);
-                    handleTabChange(null, 1);
-                    closeCreateProductMode();
-                } else {
-                    const data = await response.json();
-                    setCreateProductErrors(oldValues => ({...oldValues, ...data}));
-                }
-            } catch (error) {
-                setError(error.message);
-            } finally {
-                setCreateProductLoading(false);
-            }
-        };
-
-        handleSubmit();
-    };
-
-    const shoppedFromChangeHandler = (e) => {
-        const targetName = e.target.name;
-        const targetValue = e.target.value;
-
-        if (targetName === 'shopped_from' && createProductFormValues.shopped_from.includes(targetValue)) {
-            return
+    const handleCreateCustomUnitState = () => {
+        if (!createCustomUnitState) {
+            handleCreateCustomUnitFormValues("unit", currentProduct.unit.id);
+        } else {
+            handleCreateCustomUnitFormValues("unit", null);
         }
 
-        setCreateProductFormValues(oldValues => ({
-            ...oldValues,
-            [targetName]: name === "shopped_from"
-                ? [...oldValues.shopped_from, targetValue]
-                : targetValue,
-        }))
+        setCreateCustomUnitState(!createCustomUnitState);
     };
-
     const handleCreateCustomUnitFormValues = (targetName, targetValue) => {
         setCreateCustomUnit(oldValues => ({...oldValues, [targetName]: targetValue}));
     };
@@ -295,7 +230,7 @@ export default function ProductAdd({units, onSendData, handleModalMode, showProd
                 });
 
                 if (response.ok) {
-                    handleSelectProduct("custom_unit", createCustomUnit)
+                    handleSelectProductFormValues("custom_unit", createCustomUnit)
                     handleCreateCustomUnitState();
                 } else {
                     const data = await response.json();
@@ -318,7 +253,7 @@ export default function ProductAdd({units, onSendData, handleModalMode, showProd
                 {!createProductState ?
                     <div className={styles.productsContainer}>
                         <div className={styles.searchContainer}>
-                            <SearchBar onSearch={handleSearch}/>
+                            <SearchBar onSearch={handleSearchSubmit}/>
 
                             <div className={styles.productCreateContainer}>
                                 <span>Product not found?</span>
@@ -326,7 +261,7 @@ export default function ProductAdd({units, onSendData, handleModalMode, showProd
                                     type="submit"
                                     variant="contained"
                                     color="secondary"
-                                    onClick={openCreateProductMode}
+                                    onClick={(e) => {setCreateProductState(true)}}
                                     sx={{padding: 0.75}}
                                     disabled={createCustomUnitState}
                                 >
@@ -343,7 +278,7 @@ export default function ProductAdd({units, onSendData, handleModalMode, showProd
                                         variant="contained"
                                         color="primary"
                                         onClick={() => {
-                                            handleSelectProduct("product", null)
+                                            handleSelectProductFormValues("product", product)
                                             handleTabChange(null, 1);
                                         }}
                                         sx={{padding: 0.5}}
@@ -361,200 +296,19 @@ export default function ProductAdd({units, onSendData, handleModalMode, showProd
                                 <img src={leftButtonIcon} alt="return"/>
                             </button>
                         </div>
-                        <Box
-                            component="form"
-                            sx={{
-                                display: 'flex',
-                                flexDirection: 'column',
-                                gap: 2,
-                            }}
-                            onSubmit={handleCreateProduct}
-                        >
-                            <Box
-                                sx={{
-                                    display: 'flex',
-                                    gap: 2,
-                                }}
-                            >
-                                <TextField
-                                    label="Name"
-                                    type="text"
-                                    value={createProductFormValues.name}
-                                    name="name"
-                                    onChange={shoppedFromChangeHandler}
-                                    error={!!createProductErrors.name?.length}
-                                    helperText={createProductErrors.name}
-                                    required
-                                    fullWidth
-                                />
-                                <TextField
-                                    label="Brand"
-                                    type="text"
-                                    value={createProductFormValues.brand}
-                                    name="brand"
-                                    onChange={shoppedFromChangeHandler}
-                                    error={!!createProductErrors.brand?.length}
-                                    helperText={createProductErrors.brand}
-                                    required
-                                    fullWidth
-                                />
-                            </Box>
-                            <Box sx={{
-                                display: 'flex',
-                                gap: 2,
-                            }}>
-                                <FormControl small="true" sx={{flex: 2}} required>
-                                    <InputLabel id="shopped-from-label">Shops</InputLabel>
-                                    <Select
-                                        labelId="shopped-from-label"
-                                        value={createProductFormValues.shopped_from || []}
-                                        onChange={shoppedFromChangeHandler}
-                                        name="shopped_from"
-                                        multiple
-                                        variant="outlined"
-                                        label="Shops"
-                                        error={!!createProductErrors.shopped_from?.length}
-                                    >
-                                        {
-                                            shops.map((shop) => (
-                                                <MenuItem key={shop.id} value={shop}>
-                                                    {shop.name}
-                                                </MenuItem>
-                                            ))
-                                        }
-                                    </Select>
-                                </FormControl>
-                                <FormControl small="true" required sx={{flex: 2}}>
-                                    <InputLabel id="nutrition-per-label">Nutrition per</InputLabel>
-                                    <Select
-                                        labelId="nutrition-per-label"
-                                        value={createProductFormValues.nutrition_per || ""}
-                                        onChange={shoppedFromChangeHandler}
-                                        name="nutrition_per"
-                                        variant="outlined"
-                                        label="Nutrition per"
-                                        error={!!createProductErrors.nutrition_per?.length}
-                                    >
-                                        {
-                                            choices.map((nutrition_per) => (
-                                                <MenuItem key={nutrition_per.name} value={nutrition_per.abbreviation}>
-                                                    {nutrition_per.name}
-                                                </MenuItem>
-                                            ))
-                                        }
-                                    </Select>
-                                </FormControl>
-                            </Box>
-                            <Box sx={{
-                                display: 'flex',
-                                gap: 2,
-                                flexWrap: 'wrap',
-                            }}>
-                                <TextField
-                                    name="calories"
-                                    type="number"
-                                    value={createProductFormValues.calories || ""}
-                                    onChange={shoppedFromChangeHandler}
-                                    error={!!createProductErrors.calories?.length}
-                                    helperText={createProductErrors.calories}
-                                    variant="outlined"
-                                    label="Calories"
-                                    required
-                                />
-                                <TextField
-                                    name="protein"
-                                    type="number"
-                                    value={createProductFormValues.protein || ""}
-                                    onChange={shoppedFromChangeHandler}
-                                    error={!!createProductErrors.protein?.length}
-                                    helperText={createProductErrors.protein[0]}
-                                    variant="outlined"
-                                    label="Protein"
-                                    required
-                                />
-                                <TextField
-                                    name="carbohydrates"
-                                    type="number"
-                                    value={createProductFormValues.carbohydrates || ""}
-                                    onChange={shoppedFromChangeHandler}
-                                    error={!!createProductErrors.carbohydrates?.length}
-                                    helperText={createProductErrors.carbohydrates}
-                                    variant="outlined"
-                                    label="Carbohydrates"
-                                    required
-                                />
-                                <TextField
-                                    name="sugars"
-                                    type="number"
-                                    value={createProductFormValues.sugars || ""}
-                                    onChange={shoppedFromChangeHandler}
-                                    error={!!createProductErrors.sugars?.length}
-                                    helperText={createProductErrors.sugars}
-                                    variant="outlined"
-                                    label="Sugars"
-                                    required
-                                />
-                                <TextField
-                                    name="fats"
-                                    type="number"
-                                    value={createProductFormValues.fats || ""}
-                                    onChange={shoppedFromChangeHandler}
-                                    error={!!createProductErrors.fats?.length}
-                                    helperText={createProductErrors.fats}
-                                    variant="outlined"
-                                    label="Fats"
-                                    required
-                                />
-                                <TextField
-                                    name="saturated_fats"
-                                    type="number"
-                                    value={createProductFormValues.saturated_fats || ""}
-                                    onChange={shoppedFromChangeHandler}
-                                    error={!!createProductErrors.saturated_fats?.length}
-                                    helperText={createProductErrors.saturated_fats}
-                                    variant="outlined"
-                                    label="Saturated Fats"
-                                    required
-                                />
-                                <TextField
-                                    name="salt"
-                                    type="number"
-                                    value={createProductFormValues.salt || ""}
-                                    onChange={shoppedFromChangeHandler}
-                                    error={!!createProductErrors.salt?.length}
-                                    helperText={createProductErrors.salt}
-                                    variant="outlined"
-                                    label="Salt"
-                                    required
-                                />
-                                <TextField
-                                    name="fibre"
-                                    type="number"
-                                    value={createProductFormValues.fibre || ""}
-                                    onChange={shoppedFromChangeHandler}
-                                    error={!!createProductErrors.fibre?.length}
-                                    helperText={createProductErrors.fibre}
-                                    variant="outlined"
-                                    label="Fibre"
-                                    required
-                                />
-                            </Box>
-                            <Button
-                                type="submit"
-                                variant="contained"
-                                color="primary"
-                                sx={{padding: 1.5}}
-                                disabled={createProductLoading}
-                            >
-                                {createProductLoading ? <CircularProgress size={24}/> : "Create"}
-                            </Button>
-
-                        </Box>
+                        <CreateCustomProduct
+                            createProductFormValues={createProductFormValues}
+                            setCreateProductFormValues={setCreateProductFormValues}
+                            createProductErrors={createProductErrors}
+                            setCreateProductErrors={setCreateProductErrors}
+                            handleSelectProduct={handleSelectProductFormValues}
+                            redirectFromCreateProductMode={redirectFromCreateProductMode}
+                        />
                     </div>}
 
                 <div className={styles.finalizeProductPageContainer}>
                     <div className={styles.finalizeProductPage}>
-                        <div>
+                        <div className={styles.selectedProductContainer}>
                             {currentProduct.product ?
                                 <ProductCard product={currentProduct.product}>
                                     <Button
@@ -562,7 +316,7 @@ export default function ProductAdd({units, onSendData, handleModalMode, showProd
                                         variant="contained"
                                         color="primary"
                                         onClick={() => {
-                                            handleSelectProduct("product", null)
+                                            handleSelectProductFormValues("product", null)
                                             handleTabChange(null, 0);
                                         }}
                                         sx={{padding: 0.5}}
@@ -590,13 +344,13 @@ export default function ProductAdd({units, onSendData, handleModalMode, showProd
                                 flexDirection: 'column',
                                 gap: 2,
                             }}
-                            onSubmit={handleAdd}
+                            onSubmit={handleAddSelectedProduct}
                         >
                             <TextField
                                 label="Quantity"
                                 variant="outlined"
                                 type="number"
-                                onChange={(e) => handleSelectProduct("quantity", e.target.value)}
+                                onChange={(e) => handleSelectProductFormValues("quantity", e.target.value)}
                                 required
                                 error={!!currentProductErrors.quantity}
                                 name="quantity"
@@ -608,13 +362,13 @@ export default function ProductAdd({units, onSendData, handleModalMode, showProd
                                 <Select
                                     labelId="unit-label"
                                     value={currentProduct.unit || ""}
-                                    onChange={(e) => handleSelectProduct('unit', e.target.value)}
+                                    onChange={(e) => handleSelectProductFormValues('unit', e.target.value)}
                                     variant="outlined"
                                     required
                                     label="Unit"
                                     error={!!currentProductErrors.unit}
                                     name="unit"
-                                    disabled={createCustomUnitState}
+                                    disabled={createCustomUnitState || !currentProduct.product}
                                 >
                                     {
                                         units.map((unit) => (

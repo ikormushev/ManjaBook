@@ -19,6 +19,13 @@
 .finalizeProductPage {
     display: flex;
     gap: 1em;
+    align-items: flex-start;
+}
+
+.selectedProductContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5em;
 }
 
 .productCreateContainer {
