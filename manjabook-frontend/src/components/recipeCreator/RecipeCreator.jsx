@@ -1,4 +1,4 @@
-import {useEffect, useState} from "react";
+import {useEffect, useRef, useState} from "react";
 import {useNavigate} from "react-router-dom";
 import {Box, TextField, InputLabel, Typography, CircularProgress, Button} from '@mui/material';
 import styles from "./RecipeCreator.module.css";
@@ -9,8 +9,8 @@ import defaultRecipeImage from "../../assets/images/default-recipe-image.png";
 import {useError} from "../../context/errorProvider/ErrorProvider.jsx";
 import API_ENDPOINTS from "../../apiConfig.js";
 
-export default function RecipeCreator({ recipeData=null }) {
-    const { setError } = useError();
+export default function RecipeCreator({recipeData = null}) {
+    const {setError} = useError();
     const navigate = useNavigate();
 
     const [showProductModal, setShowProductModal] = useState(false);
@@ -38,7 +38,7 @@ export default function RecipeCreator({ recipeData=null }) {
             image: null,
         };
 
-        return recipeData ? { ...recipeTemplate, ...recipeData, image: null } : recipeTemplate;
+        return recipeData ? {...recipeTemplate, ...recipeData, image: null} : recipeTemplate;
     });
     const [loadingFormValues, setLoadingFormValues] = useState(false);
 
@@ -61,15 +61,16 @@ export default function RecipeCreator({ recipeData=null }) {
             return {
                 product_id: itemInfo.product.id,
                 unit_id: itemInfo.unit.id,
-                quantity: Number(itemInfo.quantity)
+                quantity: Number(itemInfo.quantity),
+                custom_unit_id: itemInfo.custom_unit.id
             };
         })));
 
         try {
             const response = await fetch(recipeData ?
-                `${API_ENDPOINTS.recipes}${recipeData.id}`:
+                `${API_ENDPOINTS.recipes}${recipeData.id}` :
                 API_ENDPOINTS.recipes, {
-                method: recipeData ? "PUT": "POST",
+                method: recipeData ? "PUT" : "POST",
                 body: formData,
                 credentials: "include",
             });
@@ -88,9 +89,11 @@ export default function RecipeCreator({ recipeData=null }) {
         }
     };
 
+    const fileInputRef = useRef(null);
     const changeHandler = (e) => {
         const targetType = e.target.type;
         let targetValue = e.target.value;
+
         if (targetType === 'file') {
             targetValue = e.target.files[0];
         }
@@ -98,6 +101,17 @@ export default function RecipeCreator({ recipeData=null }) {
             ...oldValues,
             [e.target.name]: targetValue,
         }));
+    };
+
+    const resetImage = (e) => {
+        setFormValues(oldValues => ({
+            ...oldValues,
+            image: null,
+        }));
+
+        if (fileInputRef.current) {
+            fileInputRef.current.value = "";
+        }
     };
 
     useEffect(() => {
@@ -190,19 +204,38 @@ export default function RecipeCreator({ recipeData=null }) {
                                 accept="image/*"
                                 type="file"
                                 onChange={changeHandler}
+                                ref={fileInputRef}
                                 hidden
                             />
+                            {formValues.image &&
+                                <Button
+                                    variant="contained"
+                                    color="primary"
+                                    sx={{
+                                        padding: 1,
+                                        '&:hover': {
+                                            backgroundColor: '#45a049',
+                                        },
+                                    }}
+                                    onClick={resetImage}
+                                    disabled={loadingFormValues}
+                                >
+                                    Remove
+                                </Button>}
                         </div>
                     </div>
-                    {formErrors.image ? <Typography variant="caption" color="error">
+                    {formValues.image &&
+                        <Typography variant="caption" color="success">
+                            Image uploaded!
+                        </Typography>
+                    }
+                    {formErrors.image && <Typography variant="caption" color="error">
                         {formErrors.image}
-                    </Typography>: formValues.image && <Typography variant="caption" color="success">
-                        Image uploaded!
                     </Typography>}
                     <TextField
                         name="portions"
                         type="number"
-                        value={formValues.portions  || ''}
+                        value={formValues.portions || ''}
                         onChange={changeHandler}
                         fullWidth
                         error={!!formErrors.portions}
@@ -215,7 +248,7 @@ export default function RecipeCreator({ recipeData=null }) {
                     <TextField
                         name="time_to_prepare"
                         type="number"
-                        value={formValues.time_to_prepare  || ''}
+                        value={formValues.time_to_prepare || ''}
                         onChange={changeHandler}
                         fullWidth
                         error={!!formErrors.time_to_prepare}
@@ -228,7 +261,7 @@ export default function RecipeCreator({ recipeData=null }) {
                     <TextField
                         name="time_to_cook"
                         type="number"
-                        value={formValues.time_to_cook  || ''}
+                        value={formValues.time_to_cook || ''}
                         onChange={changeHandler}
                         fullWidth
                         error={!!formErrors.time_to_cook}

@@ -5,7 +5,6 @@ import MultiPageModal from "../multiPageModal/MultiPageModal.jsx";
 import {
     Box,
     Button,
-    CircularProgress,
     FormControl,
     InputLabel,
     MenuItem,
@@ -61,11 +60,13 @@ export default function ProductAdd({units, onSendData, handleModalMode, showProd
         shopped_from: []
     });
 
-    const [createCustomUnit, setCreateCustomUnit] = useState({unit: null,
-        custom_convert_to_base_rate: 0});
+    const [createCustomUnit, setCreateCustomUnit] = useState({
+        unit: null,
+        custom_convert_to_base_rate: 0, id: null
+    });
     const [createCustomUnitState, setCreateCustomUnitState] = useState(false);
-    const [createCustomUnitErrors, setCreateCustomUnitErrors] = useState({unit: "",
-        custom_convert_to_base_rate: ""});
+    const [createCustomUnitErrors,
+        setCreateCustomUnitErrors] = useState({unit: "", custom_convert_to_base_rate: ""});
 
     useEffect(() => {
         const fetchProducts = async () => {
@@ -93,6 +94,7 @@ export default function ProductAdd({units, onSendData, handleModalMode, showProd
     const handleAddSelectedProduct = (e) => {
         e.preventDefault();
         e.stopPropagation();
+
         if (currentProduct.quantity <= 0) {
             handleAddErrors("quantity", "Quantity must be a positive integer!");
         }
@@ -108,19 +110,12 @@ export default function ProductAdd({units, onSendData, handleModalMode, showProd
             const data = {
                 product: currentProduct.product,
                 unit: currentProduct.unit,
-                quantity: Number(currentProduct.quantity)
+                quantity: Number(currentProduct.quantity),
+                custom_unit: createCustomUnit,
             };
+
             onSendData(data);
             resetModal();
-            setCurrentProduct({
-                product: null,
-                unit: null,
-                quantity: 0,
-            });
-            setCurrentProductErrors({
-                product: "",
-                unit: "", quantity: "",
-            });
         }
     };
 
@@ -128,14 +123,20 @@ export default function ProductAdd({units, onSendData, handleModalMode, showProd
         handleAddErrors(targetName, "");
         setCurrentProduct((oldValues) => (
             {
-                ...oldValues, [targetName]: targetValue
+                ...oldValues,
+                [targetName]: targetValue
             }));
 
         if (targetName === "unit") {
             handleSelectProductFormValues("custom_unit", null);
+            setCreateCustomUnit({unit: null, custom_convert_to_base_rate: 0, id: null});
         }
     };
 
+    const resetCustomUnit = () => {
+        setCreateCustomUnit({unit: null, custom_convert_to_base_rate: 0, id: null});
+        handleSelectProductFormValues("custom_unit", null);
+    };
     const handleTabChange = (event, newValue) => {
         setActiveTab(newValue);
     };
@@ -198,19 +199,28 @@ export default function ProductAdd({units, onSendData, handleModalMode, showProd
             quantity: 0,
             custom_unit: null,
         });
+        setCurrentProductErrors({
+            product: "",
+            unit: "",
+            quantity: "",
+            custom_unit: ""
+        });
         setCurrentProductErrors({product: "", unit: "", quantity: ""});
         handleModalMode();
+        resetCustomUnit();
+        setCreateCustomUnitState(false);
     };
 
     const handleCreateCustomUnitState = () => {
-        if (!createCustomUnitState) {
-            handleCreateCustomUnitFormValues("unit", currentProduct.unit.id);
-        } else {
-            handleCreateCustomUnitFormValues("unit", null);
-        }
-
-        setCreateCustomUnitState(!createCustomUnitState);
+        setCreateCustomUnitState((prevState) => {
+            const newState = !prevState;
+            if (newState) {
+                handleCreateCustomUnitFormValues("unit", currentProduct.unit.id);
+            }
+            return newState;
+        });
     };
+
     const handleCreateCustomUnitFormValues = (targetName, targetValue) => {
         setCreateCustomUnit(oldValues => ({...oldValues, [targetName]: targetValue}));
     };
@@ -230,6 +240,9 @@ export default function ProductAdd({units, onSendData, handleModalMode, showProd
                 });
 
                 if (response.ok) {
+                    const data = await response.json();
+
+                    handleCreateCustomUnitFormValues("id", data.id);
                     handleSelectProductFormValues("custom_unit", createCustomUnit)
                     handleCreateCustomUnitState();
                 } else {
@@ -261,7 +274,9 @@ export default function ProductAdd({units, onSendData, handleModalMode, showProd
                                     type="submit"
                                     variant="contained"
                                     color="secondary"
-                                    onClick={(e) => {setCreateProductState(true)}}
+                                    onClick={(e) => {
+                                        setCreateProductState(true)
+                                    }}
                                     sx={{padding: 0.75}}
                                     disabled={createCustomUnitState}
                                 >
@@ -398,50 +413,68 @@ export default function ProductAdd({units, onSendData, handleModalMode, showProd
                         >
                             {currentProduct.unit && currentProduct.unit.is_customizable &&
                                 <>
-                                {!createCustomUnitState &&
-                                    <Typography variant="body1">
-                                        <span style={{fontWeight: 'bold'}}>{currentProduct.unit.name}</span> are
-                                        usually{' '}
-                                        <span
-                                            style={{fontWeight: 'bold'}}>{currentProduct.unit.convert_to_base_rate} {currentProduct.unit.base_unit}</span>.
-                                    </Typography>}
-                                    <Button
-                                        type="submit"
-                                        variant="contained"
-                                        color="secondary"
-                                        sx={{padding: 1}}
-                                        onClick={handleCreateCustomUnitState}
-                                    >
-                                        {!createCustomUnitState ? "YOU CAN MODIFY IT" : "Close modification"}
-                                    </Button>
-                                    {createCustomUnitState &&
-                                        <Box
-                                            sx={{
-                                                display: 'flex',
-                                                flexDirection: 'column',
-                                                gap: 1.5,
-                                            }}
+                                    {currentProduct.custom_unit ? <>
+                                        <Typography variant="body1">
+                                            <span style={{fontWeight: 'bold'}}>{currentProduct.unit.name}</span> are
+                                            now {' '}
+                                            <span
+                                                style={{fontWeight: 'bold'}}>{createCustomUnit.custom_convert_to_base_rate} {currentProduct.unit.base_unit}</span>.
+                                        </Typography>
+                                        <Button
+                                            variant="contained"
+                                            color="secondary"
+                                            sx={{padding: 1}}
+                                            onClick={resetCustomUnit}
                                         >
-                                            <TextField
-                                                label="Custom Unit Rate"
-                                                variant="outlined"
-                                                type="text"
-                                                onChange={(e) => {handleCreateCustomUnitFormValues(e.target.name, e.target.value)}}
-                                                required
-                                                name="custom_convert_to_base_rate"
-                                                error={!!createCustomUnitErrors.custom_convert_to_base_rate || ""}
-                                                helperText={createCustomUnitErrors.custom_convert_to_base_rate}
-                                            />
-                                            <Button
-                                                type="submit"
-                                                variant="contained"
-                                                color="primary"
-                                                sx={{padding: 1}}
-                                                onClick={handleCreateCustomUnitSubmit}>
-                                                Create custom unit
-                                            </Button>
-                                        </Box>
-                                    }
+                                            Remove custom unit
+                                        </Button>
+                                    </> : <>
+                                        {!createCustomUnitState &&
+                                            <Typography variant="body1">
+                                                <span style={{fontWeight: 'bold'}}>{currentProduct.unit.name}</span> are
+                                                usually {' '}
+                                                <span
+                                                    style={{fontWeight: 'bold'}}>{currentProduct.unit.convert_to_base_rate} {currentProduct.unit.base_unit}</span>.
+                                            </Typography>}
+                                        <Button
+                                            variant="contained"
+                                            color="secondary"
+                                            sx={{padding: 1}}
+                                            onClick={handleCreateCustomUnitState}
+                                        >
+                                            {!createCustomUnitState ? "YOU CAN MODIFY IT" : "Close modification"}
+                                        </Button>
+                                        {createCustomUnitState &&
+                                            <Box
+                                                sx={{
+                                                    display: 'flex',
+                                                    flexDirection: 'column',
+                                                    gap: 1.5,
+                                                }}
+                                            >
+                                                <TextField
+                                                    label="Custom Unit Rate"
+                                                    variant="outlined"
+                                                    type="text"
+                                                    onChange={(e) => {
+                                                        handleCreateCustomUnitFormValues(e.target.name, e.target.value)
+                                                    }}
+                                                    required
+                                                    name="custom_convert_to_base_rate"
+                                                    error={!!createCustomUnitErrors.custom_convert_to_base_rate}
+                                                    helperText={createCustomUnitErrors.custom_convert_to_base_rate}
+                                                />
+                                                <Button
+                                                    type="submit"
+                                                    variant="contained"
+                                                    color="primary"
+                                                    sx={{padding: 1}}
+                                                    onClick={handleCreateCustomUnitSubmit}>
+                                                    Create custom unit
+                                                </Button>
+                                            </Box>
+                                        }
+                                    </>}
                                 </>
                             }
                         </Box>

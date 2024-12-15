@@ -2,7 +2,7 @@ import styles from './ProductDetail.module.css';
 import deleteButtonIcon from '../../assets/images/delete-button-icon.png';
 import editButtonIcon from '../../assets/images/edit-button-icon.png';
 import {useState} from "react";
-import {Box, Button, IconButton, TextField} from "@mui/material";
+import {Box, IconButton, TextField} from "@mui/material";
 import CustomModal from "../../utils/modal/CustomModal.jsx";
 import ProductCard from "../productCard/ProductCard.jsx";
 

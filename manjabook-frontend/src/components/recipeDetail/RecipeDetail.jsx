@@ -71,6 +71,7 @@ export default function RecipeDetail() {
 
         fetchDelete();
     };
+
     return (
         editRecipe ?
             <RecipeCreator recipeData={recipe}/> :
