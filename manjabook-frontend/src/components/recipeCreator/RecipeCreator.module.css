@@ -1,8 +1,12 @@
 .recipeImageContainer {
-    width: 20em;
     border: 0.1em #105D5E solid;
     position: relative;
     overflow: hidden;
+}
+.recipeImageInfo {
+    max-width: 20em;
+    flex: 1;
+    min-width: 10em;
 }
 
 .recipeImageContainer img {
@@ -50,7 +54,8 @@
 }
 
 .recipeBodyContainer {
-    width: 100%;
+    flex: 2;
+    min-width: 10em;
 }
 
 .selectedProducts {

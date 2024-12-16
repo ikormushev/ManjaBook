@@ -85,6 +85,7 @@ export default function ConfigureProduct({
             display: "flex",
             gap: "1em",
             alignItems: "flex-start",
+            flexWrap: "wrap",
         }}
     >
         <Box
@@ -92,6 +93,7 @@ export default function ConfigureProduct({
                 display: "flex",
                 gap: "0.5em",
                 flexDirection: "column",
+                flexWrap: "wrap",
             }}
         >
             {children}

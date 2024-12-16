@@ -189,7 +189,7 @@ export default function RecipeCreator({recipeData = null}) {
                     display: 'flex',
                     gap: 2,
                     padding: 2,
-                    // flexWrap: 'wrap',
+                    flexWrap: 'wrap',
                 }}
                 onKeyDown={(e) => {
                     if (e.key === "Enter") {
