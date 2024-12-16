@@ -12,6 +12,7 @@ import API_ENDPOINTS from "../../apiConfig.js";
 export default function RecipeCreator({recipeData = null}) {
     const {setError} = useError();
     const navigate = useNavigate();
+    const [totalProducts, setTotalProducts] = useState(0);
 
     const [showProductModal, setShowProductModal] = useState(false);
     const [units, setUnits] = useState([]);
@@ -142,28 +143,34 @@ export default function RecipeCreator({recipeData = null}) {
                     itemInfo.unit.id === data.unit.id
             );
 
-            if (existingIndex !== -1) {
-                const updatedProducts = [...oldValues];
-                updatedProducts[existingIndex] = {
-                    ...updatedProducts[existingIndex],
-                    quantity: updatedProducts[existingIndex].quantity + data.quantity,
-                };
-                return updatedProducts;
+            if (existingIndex === -1) {
+                data.uniqueKey = `${totalProducts}-${data.product.id}`;
+                setTotalProducts(oldValue => oldValue + 1);
+                return [...oldValues, data];
             }
 
-            return [...oldValues, data];
+            if (data.custom_unit && oldValues[existingIndex].custom_unit) {
+                setError("Cannot set custom unit to a product with an existing custom unit!");
+                return oldValues
+            }
+            const updatedProducts = [...oldValues];
+            updatedProducts[existingIndex] = {
+                ...updatedProducts[existingIndex],
+                quantity: updatedProducts[existingIndex].quantity + data.quantity,
+            };
+            return updatedProducts;
         });
     };
 
-    const handleDeleteProduct = (itemID, unitID) => {
+    const handleDeleteProduct = (data) => {
         setSelectedProducts(oldValues =>
-            oldValues.filter((itemInfo) => itemInfo.product.id !== itemID || itemInfo.unit.id !== unitID));
+            oldValues.filter((itemInfo) => itemInfo.uniqueKey !== data.uniqueKey));
     };
 
     const handleEditProduct = (data) => {
         setSelectedProducts(oldValues =>
             oldValues.map((itemInfo) =>
-                itemInfo.product.id !== data.product.id
+                itemInfo.uniqueKey !== data.uniqueKey
                     ? itemInfo
                     : data)
         );
@@ -182,6 +189,7 @@ export default function RecipeCreator({recipeData = null}) {
                     display: 'flex',
                     gap: 2,
                     padding: 2,
+                    // flexWrap: 'wrap',
                 }}
                 onKeyDown={(e) => {
                     if (e.key === "Enter") {
@@ -332,7 +340,7 @@ export default function RecipeCreator({recipeData = null}) {
                         </div>
                         <div className={styles.selectedProductsBody}>
                             {selectedProducts.map((productInfo) => (
-                                <div key={`${productInfo.product.id}-${productInfo.unit.id}-${productInfo.quantity}`}>
+                                <div key={productInfo.uniqueKey}>
                                     <ProductDetail productInfo={productInfo}
                                                    onDeleteProduct={handleDeleteProduct}
                                                    onEditProduct={handleEditProduct}

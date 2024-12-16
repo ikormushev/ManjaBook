@@ -1,10 +1,9 @@
 .productDetailCard {
     display: flex;
     align-items: center;
-    padding: 12px;
-    margin: 8px 0;
+    padding: 1em;
     border: 1px solid #e0e0e0;
-    border-radius: 8px;
+    border-radius: 0.5em;
     background-color: #f9f9f9;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     gap: 1em;
@@ -18,7 +17,7 @@
 
 .unitQuantity {
     display: flex;
-    gap: 8px;
+    gap: 0.4em;
     font-weight: bold;
     color: #333;
 }
@@ -29,29 +28,8 @@
 }
 
 .unitStyle, .quantityStyle {
-    font-size: 14px;
-    padding: 2px 6px;
+    padding: 0.25em;
     background-color: #eaf4fc;
-    border-radius: 4px;
+    border-radius: 0.25em;
     color: #007bff;
 }
-
-.productButtons {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5em;
-}
-
-.productButtons button {
-    width: 40px;
-    height: 40px;
-    cursor: pointer;
-    border: none;
-    background-color: #f9f9f9;
-}
-
-.productButtons button img {
-    width: 100%;
-    height: auto;
-}
-

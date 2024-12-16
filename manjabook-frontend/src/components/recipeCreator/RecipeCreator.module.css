@@ -43,7 +43,7 @@
     background-color: #E0E0E0;
 }
 
-.recipeImageInfo,  .recipeBodyContainer, .recipeBody{
+.recipeImageInfo,  .recipeBodyContainer, .recipeBody {
     display: flex;
     flex-direction: column;
     gap: 1em;

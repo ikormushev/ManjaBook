@@ -2,99 +2,89 @@ import styles from './ProductDetail.module.css';
 import deleteButtonIcon from '../../assets/images/delete-button-icon.png';
 import editButtonIcon from '../../assets/images/edit-button-icon.png';
 import {useState} from "react";
-import {Box, IconButton, TextField} from "@mui/material";
+import {Box, IconButton} from "@mui/material";
 import CustomModal from "../../utils/modal/CustomModal.jsx";
 import ProductCard from "../productCard/ProductCard.jsx";
+import ConfigureProduct from "../configureProduct/ConfigureProduct.jsx";
 
 export default function ProductDetail({productInfo, units, onDeleteProduct, onEditProduct}) {
-    const {product, quantity, unit} = productInfo;
+    const [currentProduct, setCurrentProduct] = useState(productInfo);
+    const [currentProductErrors, setCurrentProductErrors] = useState({product: "", unit: "", quantity: ""});
     const [showProductEditModal, setShowProductEditModal] = useState(false);
+    const [isDisabled, setIsDisabled] = useState(false);
 
     const handleModalMode = () => {
         setShowProductEditModal(!showProductEditModal);
     };
-
-    const handleDelete = () => {
-        onDeleteProduct(product.id, unit.id)
+    const handleEditErrors = (field, message) => {
+        setCurrentProductErrors(oldValues => ({...oldValues, [field]: message}));
     };
 
-    const [currentProductInfo, setCurrentProductInfo] = useState({
-        product: productInfo.product,
-        unitID: productInfo.unit.id,
-        quantity: productInfo.quantity
-    });
+    const handleDelete = () => {
+        onDeleteProduct(currentProduct)
+    };
 
-    const handleEdit = () => {
-        if (currentProductInfo.product.id && currentProductInfo.unitID && currentProductInfo.quantity) {
-            const wantedUnit = units.find((unit) => unit.id === Number(currentProductInfo.unitID));
-            const data = {
-                product: productInfo.product,
-                unit: wantedUnit,
-                quantity: Number(currentProductInfo.quantity)
-            };
-            onEditProduct(data);
+    const handleEdit = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        if (currentProduct.quantity <= 0) {
+            handleEditErrors("quantity", "Quantity must be a positive integer!");
+            return
+        }
+
+        if (currentProduct.product && currentProduct.unit && currentProduct.quantity) {
+            onEditProduct(currentProduct);
             handleModalMode();
         }
     };
 
-    const handleProductSelect = (e) => {
-        setCurrentProductInfo(oldValues => ({...oldValues, [e.target.name]: e.target.value}));
+    const handleProductSelect = (targetName, targetValue) => {
+        setCurrentProduct(oldValues => ({...oldValues, [targetName]: targetValue}));
     };
 
     return (
         <div className={styles.productDetailCard}>
             <div className={styles.productInfo}>
-                <p>{product.name}</p>
+                <p>{currentProduct.product.name}</p>
                 <div className={styles.unitQuantity}>
-                    <span className={styles.quantityStyle}>{quantity}</span>
-                    <span className={styles.unitStyle}>{unit.abbreviation}</span>
+                    <span className={styles.quantityStyle}>{currentProduct.quantity}</span>
+                    <span className={styles.unitStyle}>{currentProduct.unit.abbreviation}</span>
                 </div>
             </div>
-            <div className={styles.productButtons}>
+            <Box
+                sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.5em',
+                '& button': {
+                    width: '2em',
+                },
+            }}>
                 <IconButton onClick={handleModalMode}>
                     <img src={editButtonIcon} alt="editButtonIcon"/>
                 </IconButton>
 
-                <button type="button" onClick={handleDelete}>
+                <IconButton onClick={handleDelete}>
                     <img src={deleteButtonIcon} alt="deleteButtonIcon"/>
-                </button>
+                </IconButton>
 
                 <CustomModal isOpen={showProductEditModal} onClose={handleModalMode}>
                     <h3>Edit Product</h3>
-                    <Box
-                        sx={{
-                            display: 'flex',
-                            flexDirection: 'column',
-                            gap: 2,
-                        }}
+                    <ConfigureProduct
+                        currentProduct={currentProduct}
+                        handleCurrentProduct={handleProductSelect}
+                        currentProductErrors={currentProductErrors}
+                        units={units}
+                        onSubmitMethod={handleEdit}
+                        configureButtonName="Edit"
+                        isDisabled={isDisabled}
+                        setIsDisabled={setIsDisabled}
                     >
-                        <ProductCard product={productInfo.product}/>
-                        <TextField
-                            label="Quantity"
-                            variant="outlined"
-                            name="quantity"
-                            type="number"
-                            onChange={handleProductSelect}
-                            required
-                            value={currentProductInfo.quantity}
-                        />
-
-                        <select
-                            name="unitID"
-                            onChange={handleProductSelect}
-                            value={currentProductInfo.unitID}
-                        >
-                            <option value="" disabled>Select a unit</option>
-                            {units.map((unit) => (
-                                <option key={unit.id} value={unit.id}>
-                                    {unit.name}
-                                </option>
-                            ))}
-                        </select>
-                        <button type="button" onClick={handleEdit}>Edit</button>
-                    </Box>
+                        <ProductCard product={currentProduct.product}/>
+                    </ConfigureProduct>
                 </CustomModal>
-            </div>
+            </Box>
         </div>
     );
 };
