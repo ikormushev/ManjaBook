@@ -95,11 +95,22 @@ class BasicRecipeInfo(models.Model):
     class Meta:
         abstract = True
 
-    name = models.CharField(max_length=100, validators=[MinLengthValidator(3, 'Recipe name must have at least 3 '
-                                                                              'letters!')])
-    quick_description = models.CharField(max_length=100, null=True, blank=True)
-    portions = models.SmallIntegerField(default=1, validators=[MinValueValidator(1),
-                                                               MaxValueValidator(100)])
-    time_to_cook = models.SmallIntegerField(default=1, null=True, blank=True)
-    time_to_prepare = models.SmallIntegerField(default=1, null=True, blank=True)
-    preparation = models.TextField()
+    name = models.CharField(max_length=100,
+                            validators=[MinLengthValidator(3,
+                                                           'Recipe name must have at least 3 letters!')])
+    quick_description = models.CharField(max_length=100,
+                                         validators=[MinLengthValidator(3,
+                                                                        'Description must have at least 3 letters!')])
+    portions = models.SmallIntegerField(default=1,
+                                        validators=[
+                                            MinValueValidator(1, 'Portions must be at least 1!'),
+                                            MaxValueValidator(100, 'Portions can be at maximum 100!')])
+    time_to_cook = models.SmallIntegerField(default=1, validators=[
+        MinValueValidator(1, 'Time to cook must be set at least 1 minute!'),
+        MaxValueValidator(1440, 'Time to cook can be set at maximum 1440 minutes!')])
+    time_to_prepare = models.SmallIntegerField(default=1, validators=[
+        MinValueValidator(1, 'Time to prepare must be set at least 1 minute!'),
+        MaxValueValidator(1440, 'Time to prepare can be set at maximum 1440 minutes!')])
+    preparation = models.TextField(null=False,
+                                   validators=[MinLengthValidator(3,
+                                                                  'Preparation must have at least 3 letters!')])

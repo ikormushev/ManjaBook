@@ -23,7 +23,9 @@ class Shop(models.Model):
 class Product(ProductNutrientsInfo):
     name = models.CharField(max_length=30,
                             validators=[MinLengthValidator(3, "Product name must have at least 3 letters!")])
-    brand = models.CharField(max_length=30, validators=[MinLengthValidator(1,)], default="Basic")
+    brand = models.CharField(max_length=30,
+                             validators=[MinLengthValidator(1, "Product name must have at least 1 letter!")],
+                             default="Basic")
 
     shopped_from = models.ManyToManyField(Shop, related_name='products', blank=True)
 
@@ -49,7 +51,7 @@ class Recipe(BasicRecipeInfo):
 
     slug = models.SlugField(max_length=100, unique=True, editable=False)
     image = models.ImageField(upload_to='recipes-images/', null=True, blank=True,
-                              default='common/default-recipe-image.jpg')
+                              default='common/default-recipe-image.png')
 
     created_at = models.DateTimeField(auto_now_add=True)
     last_edit_at = models.DateTimeField(auto_now=True)
@@ -94,10 +96,8 @@ class CustomUnit(models.Model):
     unit = models.ForeignKey(Unit, on_delete=models.CASCADE)
     custom_convert_to_base_rate = models.DecimalField(max_digits=7,
                                                       decimal_places=3,
-                                                      validators=[MinValueValidator(0.001)])
-
-    class Meta:
-        unique_together = ('unit', 'custom_convert_to_base_rate')
+                                                      validators=[MinValueValidator(0.001,
+                                                                                    "Base rate must be at least 0.001.")])
 
     def __str__(self):
         return f"{self.unit.name} ({self.custom_convert_to_base_rate})"

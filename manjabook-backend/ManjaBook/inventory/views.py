@@ -41,6 +41,15 @@ class ProductListView(api_views.ListCreateAPIView):
             return []
         return super().get_authenticators()
 
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        search_term = self.request.query_params.get('search', None)
+
+        if search_term:
+            queryset = queryset.filter(name__icontains=search_term)
+
+        return queryset
+
 
 class ProductDetailView(api_views.RetrieveAPIView):
     queryset = Product.objects.all()
@@ -79,7 +88,7 @@ class CustomUnitCreateView(api_views.ListCreateAPIView):
     create_serializer_class = CustomUnitCreateSerializer
 
     serializer_class = list_serializer_class
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
     def get_serializer_class(self):
         if self.request.method == 'POST':
@@ -115,9 +124,14 @@ class RecipeListView(api_views.ListCreateAPIView):
         return self.serializer_class
 
     def get_queryset(self):
-        return (Recipe.objects.all()
-                .select_related('created_by')
-                .prefetch_related('recipe_products'))
+        queryset = Recipe.objects.all().select_related('created_by').prefetch_related('recipe_products')
+
+        search_term = self.request.query_params.get('search', None)
+
+        if search_term:
+            queryset = queryset.filter(name__icontains=search_term)
+
+        return queryset
 
     def perform_create(self, serializer):
         serializer.save(created_by=self.request.user.profile)

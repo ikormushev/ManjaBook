@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from django.utils.text import slugify
+
 from unidecode import unidecode
 
 from ManjaBook.accounts.serializers import BaseProfileSerializer
@@ -15,7 +16,7 @@ class ShopSerializer(serializers.ModelSerializer):
 
 class ProductBaseSerializer(serializers.ModelSerializer):
     nutrition_per = serializers.ChoiceField(choices=NutritionPerChoices.choices)
-    shopped_from = ShopSerializer(many=True, read_only=True)
+    shopped_from = ShopSerializer(many=True)
 
     class Meta:
         model = Product
@@ -26,6 +27,10 @@ class ProductBaseSerializer(serializers.ModelSerializer):
 
 
 class ProductCreateSerializer(ProductBaseSerializer):
+    shopped_from = serializers.PrimaryKeyRelatedField(
+        queryset=Shop.objects.all(), many=True
+    )
+
     def create(self, validated_data):
         shops = validated_data.pop('shopped_from')
         product = Product.objects.create(**validated_data)
@@ -59,6 +64,13 @@ class CustomUnitCreateSerializer(CustomUnitBaseSerializer):
         if not unit.is_customizable:
             raise serializers.ValidationError({'unit': f"The unit {unit.name} is not customizable."})
         return data
+
+    def create(self, validated_data):
+        unit = validated_data['unit']
+        rate = validated_data['custom_convert_to_base_rate']
+        instance, created = CustomUnit.objects.get_or_create(unit=unit, custom_convert_to_base_rate=rate)
+
+        return instance
 
 
 class RecipeProductSerializer(serializers.ModelSerializer):
@@ -125,7 +137,6 @@ class RecipeProductCreateSerializer(serializers.ModelSerializer):
 
 
 class RecipeCreateSerializer(serializers.ModelSerializer):
-    # products = RecipeProductCreateSerializer(source='recipe_product', many=True)
     products = serializers.JSONField()
     image = serializers.ImageField(required=False, allow_null=True)
 
@@ -136,6 +147,9 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         products_data = validated_data.pop('products', [])
+        if not products_data:
+            raise serializers.ValidationError({'products': "No products provided."})
+
         recipe = Recipe.objects.create(**validated_data)
 
         for product_data in products_data:
@@ -147,11 +161,6 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
     def to_representation(self, instance):
         response = RecipeDetailSerializer(instance=instance).data
         return response
-
-    # def validate(self, attrs):
-    #     if 'image' in attrs and attrs['image'] == "null":
-    #         attrs['image'] = None
-    #     return attrs
 
 
 class RecipesCollectionSerializer(serializers.ModelSerializer):
