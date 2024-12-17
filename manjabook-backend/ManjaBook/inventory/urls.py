@@ -21,9 +21,14 @@ urlpatterns = [
     ])),
     path('recipes/', include([
         path('', views.RecipeListView.as_view(), name='api_recipes_list'),
-        path('<int:pk>/', views.RecipeDetailView.as_view(), name='api_recipes_recipes_list'),
+        path('<int:pk>/', views.RecipeDetailView.as_view(), name='api_recipes_detail'),
     ])),
     path('recipes-collections/', include([
-        path('', views.RecipeCollectionsListView.as_view(), name='api_recipes_collections_list'),
-    ]))
+        path('', views.RecipesCollectionListView.as_view(), name='api_recipes_collection_list'),
+        path('<int:pk>/', views.RecipesCollectionDetailView.as_view(), name='api_recipes_collection_detail'),
+    ])),
+    path('saved-recipes-collections/', include([
+        path('', views.SavedRecipesCollectionListView.as_view(), name='api_saved_recipes_collection_list'),
+        path('<int:pk>/', views.SavedRecipesCollectionDetailView.as_view(), name='api_saved_recipes_collection_detail'),
+    ])),
 ]

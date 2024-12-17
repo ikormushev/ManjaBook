@@ -1,10 +1,12 @@
 from ManjaBook.accounts.permissions import IsOwnerOrAdmin
-from ManjaBook.inventory.models import Product, Shop, Unit, CustomUnit, Recipe, RecipeProduct, RecipesCollection
+from ManjaBook.inventory.models import Product, Shop, Unit, CustomUnit, Recipe, RecipeProduct, RecipesCollection, \
+    SavedRecipesCollection
 from rest_framework import generics as api_views, permissions
 from ManjaBook.inventory.serializers import ProductCreateSerializer, ShopSerializer, \
     UnitBaseSerializer, CustomUnitCreateSerializer, RecipeProductSerializer, BaseRecipeSerializer, \
     ProductBaseSerializer, RecipeDetailSerializer, RecipeCreateSerializer, CustomUnitListSerializer, \
-    RecipesCollectionSerializer
+    RecipesCollectionSerializer, RecipesCollectionCreateSerializer, RecipesCollectionDetailSerializer, \
+    SavedRecipesCollectionBaseSerializer, SavedRecipesCollectionCreateSerializer, SavedRecipesCollectionDetailSerializer
 
 
 class ShopListView(api_views.ListCreateAPIView):
@@ -96,7 +98,7 @@ class CustomUnitCreateView(api_views.ListCreateAPIView):
         return self.serializer_class
 
     def get_queryset(self):
-        return CustomUnit.objects.all().select_related('unit')
+        return CustomUnit.objects.select_related('unit')
 
 
 class CustomUnitDetailView(api_views.RetrieveAPIView):
@@ -124,7 +126,7 @@ class RecipeListView(api_views.ListCreateAPIView):
         return self.serializer_class
 
     def get_queryset(self):
-        queryset = Recipe.objects.all().select_related('created_by').prefetch_related('recipe_products')
+        queryset = Recipe.objects.select_related('created_by').prefetch_related('recipe_products')
 
         search_term = self.request.query_params.get('search', None)
 
@@ -146,7 +148,7 @@ class RecipeDetailView(api_views.RetrieveUpdateDestroyAPIView):
     serializer_class = RecipeDetailSerializer
 
     def get_queryset(self):
-        return (Recipe.objects.all()
+        return (Recipe.objects
                 .prefetch_related('recipe_products')
                 .prefetch_related('recipe_products__unit', 'recipe_products__custom_unit'))
 
@@ -156,7 +158,71 @@ class RecipeDetailView(api_views.RetrieveUpdateDestroyAPIView):
         return [IsOwnerOrAdmin()]
 
 
-class RecipeCollectionsListView(api_views.ListAPIView):
-    queryset = RecipesCollection.objects.all()
-    serializer_class = RecipesCollectionSerializer
+class RecipesCollectionListView(api_views.ListCreateAPIView):
+    list_serializer_class = RecipesCollectionSerializer
+    create_serializer_class = RecipesCollectionCreateSerializer
+
+    serializer_class = list_serializer_class
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+    def get_queryset(self):
+        return (RecipesCollection.objects
+                .select_related('created_by')
+                .prefetch_related('recipes'))
+
+    def get_serializer_class(self):
+        if self.request.method == 'POST':
+            return self.create_serializer_class
+        return self.serializer_class
+
+
+class RecipesCollectionDetailView(api_views.RetrieveUpdateDestroyAPIView):
+    serializer_class = RecipesCollectionDetailSerializer
+
+    def get_queryset(self):
+        return (RecipesCollection.objects
+                .select_related('created_by')
+                .prefetch_related('recipes'))
+
+    def get_permissions(self):
+        if self.request.method == 'GET':
+            return [permissions.AllowAny()]
+        return [IsOwnerOrAdmin()]
+
+
+class SavedRecipesCollectionListView(api_views.ListCreateAPIView):
+    list_serializer_class = SavedRecipesCollectionBaseSerializer
+    create_serializer_class = SavedRecipesCollectionCreateSerializer
+
+    serializer_class = list_serializer_class
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+    def get_queryset(self):
+        return (SavedRecipesCollection.objects
+                .select_related('user', 'recipes_collection')
+                .prefetch_related('recipes_collection__recipes'))
+
+    def get_serializer_class(self):
+        if self.request.method == 'POST':
+            return self.create_serializer_class
+        return self.serializer_class
+
+
+class SavedRecipesCollectionDetailView(api_views.RetrieveUpdateDestroyAPIView):
+    serializer_class = SavedRecipesCollectionDetailSerializer
     permission_classes = [permissions.AllowAny]
+
+    def get_queryset(self):
+        return (SavedRecipesCollection.objects
+                .select_related('user', 'recipes_collection')
+                .prefetch_related('recipes_collection__recipes'))
+
+    def get_permissions(self):
+        if self.request.method == 'GET':
+            return [permissions.AllowAny()]
+        return [IsOwnerOrAdmin()]
+
+    def get_object(self):
+        obj = super().get_object()
+        obj.created_by = obj.user
+        return obj

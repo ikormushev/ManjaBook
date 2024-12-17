@@ -5,7 +5,8 @@ from unidecode import unidecode
 
 from ManjaBook.accounts.serializers import BaseProfileSerializer
 from ManjaBook.inventory.choices import NutritionPerChoices
-from ManjaBook.inventory.models import Shop, Product, Unit, CustomUnit, RecipeProduct, Recipe, RecipesCollection
+from ManjaBook.inventory.models import Shop, Product, Unit, CustomUnit, RecipeProduct, Recipe, RecipesCollection, \
+    SavedRecipesCollection
 
 
 class ShopSerializer(serializers.ModelSerializer):
@@ -107,11 +108,6 @@ class RecipeDetailSerializer(BaseRecipeSerializer):
     class Meta(BaseRecipeSerializer.Meta):
         fields = BaseRecipeSerializer.Meta.fields + ['portions', 'products', 'preparation', 'created_at', 'is_owner']
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        if self.context.get('exclude_created_by', False):
-            self.fields.pop('created_by', None)
-
     def get_is_owner(self, obj):
         request = self.context.get('request', None)
         if request and request.user.is_authenticated:
@@ -163,9 +159,44 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         return response
 
 
-class RecipesCollectionSerializer(serializers.ModelSerializer):
-    recipes = BaseRecipeSerializer(many=True, read_only=True)
-
+class BaseRecipesCollectionSerializer(serializers.ModelSerializer):
     class Meta:
         model = RecipesCollection
-        fields = ['id', 'profile', 'recipes', 'image', 'is_private', 'created_at']
+        fields = ['id', 'created_by', 'recipes', 'image', 'is_private', 'created_at']
+        read_only_fields = ['id', 'created_at', 'created_by']
+
+
+class RecipesCollectionSerializer(BaseRecipesCollectionSerializer):
+    recipes = BaseRecipeSerializer(many=True, read_only=True)
+
+
+class RecipesCollectionCreateSerializer(BaseRecipesCollectionSerializer):
+    recipes = serializers.PrimaryKeyRelatedField(queryset=Recipe.objects.all(), many=True)
+
+
+class RecipesCollectionDetailSerializer(BaseRecipesCollectionSerializer):
+    ...
+
+
+class SavedRecipesCollectionBaseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SavedRecipesCollection
+        fields = ['id', 'user', 'recipes_collection', 'saved_at']
+        read_only_fields = ['id', 'saved_at']
+
+
+class SavedRecipesCollectionCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SavedRecipesCollection
+        fields = ['user', 'recipes_collection']
+
+    def validate(self, data):
+        user = data['user']
+        recipes_collection = data['recipes_collection']
+        if SavedRecipesCollection.objects.filter(user=user, recipes_collection=recipes_collection).exists():
+            raise serializers.ValidationError("This collection is already saved by the user.")
+        return data
+
+
+class SavedRecipesCollectionDetailSerializer(SavedRecipesCollectionBaseSerializer):
+    ...

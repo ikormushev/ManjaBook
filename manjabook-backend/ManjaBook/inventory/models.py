@@ -107,7 +107,9 @@ class RecipeProduct(RecipeNutrientsInfo):
     recipe = models.ForeignKey(Recipe, related_name='recipe_products', on_delete=models.CASCADE)
     product = models.ForeignKey(Product, related_name='product_recipes', on_delete=models.CASCADE)
 
-    quantity = models.DecimalField(max_digits=6, decimal_places=2, validators=[MinValueValidator(0.01)])
+    quantity = models.DecimalField(max_digits=6, decimal_places=2,
+                                   validators=[MinValueValidator(0.01,
+                                                                 "Quantity must be at least 0.01.")])
     unit = models.ForeignKey(Unit, related_name='recipe_products', on_delete=models.CASCADE)
     custom_unit = models.ForeignKey(CustomUnit, related_name='recipe_products_custom',
                                     blank=True, null=True,
@@ -134,12 +136,30 @@ class RecipeProduct(RecipeNutrientsInfo):
 
 
 class RecipesCollection(models.Model):
-    name = models.CharField(max_length=40, validators=[MinLengthValidator(3)])
-    profile = models.ForeignKey(Profile, related_name='collections', on_delete=models.CASCADE)
+    name = models.CharField(max_length=40, validators=[
+        MinLengthValidator(3, "Recipe collection name must be at least 3 characters.")])
     recipes = models.ManyToManyField(Recipe, related_name='collections', blank=True)
 
-    image = models.ImageField(upload_to='recipes-collections-images/', default="common/default-collections-photo.png",
+    image = models.ImageField(upload_to='recipes-collections-images/',
+                              default="common/default-collections-photo.png",
                               null=True, blank=True)
     is_private = models.BooleanField(default=False)
+
+    created_by = models.ForeignKey(Profile, related_name='owned_collections',
+                                   on_delete=models.CASCADE)  # models.SET_NULL - a possibility
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+
+class SavedRecipesCollection(models.Model):
+    user = models.ForeignKey(
+        Profile,
+        related_name='saved_collections',
+        on_delete=models.CASCADE
+    )
+    recipes_collection = models.ForeignKey(
+        RecipesCollection,
+        related_name='saved_by',
+        on_delete=models.CASCADE
+    )
+    saved_at = models.DateTimeField(auto_now_add=True)

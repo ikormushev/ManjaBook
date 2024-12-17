@@ -45,6 +45,9 @@ class AccountUser(auth_models.AbstractBaseUser, auth_models.PermissionsMixin):
 
     objects = AccountUserManager()
 
+    def __str__(self):
+        return self.username
+
 
 class Profile(models.Model):
     user = models.OneToOneField(
@@ -57,3 +60,5 @@ class Profile(models.Model):
     profile_picture = models.ImageField(upload_to=user_directory_path,
                                         default='common/default-user-photo.jpg')
 
+    def __str__(self):
+        return self.user.username
