@@ -13,14 +13,17 @@ import RecipeCreator from "./components/recipeCreator/RecipeCreator.jsx";
 import ProtectedRoute from "./utils/protectedRoute/ProtectedRoute.jsx";
 import RecipeDetail from "./components/recipeDetail/RecipeDetail.jsx";
 import {useError} from "./context/errorProvider/ErrorProvider.jsx";
-import ErrorNotification from "./utils/errorNotification/ErrorNotification.jsx";
+import {useSuccess} from "./context/successProvider/SuccessProvider.jsx";
+import BaseNotification from "./utils/baseNotification/BaseNotification.jsx";
 
 export default function App() {
     const { error, clearError } = useError();
+    const { success, clearSuccess } = useSuccess();
 
     return (
         <>
-            {error && <ErrorNotification error={error} clearError={clearError} />}
+            {error && <BaseNotification notification={error} clearNotification={clearError} notificationType="error" />}
+            {success && <BaseNotification notification={success} clearNotification={clearSuccess} notificationType="success" />}
             <AuthProvider>
                 <Routes>
                     <Route element={<DefaultLayout/>}>

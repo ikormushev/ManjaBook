@@ -1,17 +1,20 @@
 import {Box, Button, FormControl, InputLabel, MenuItem, Select, TextField, Typography} from "@mui/material";
 import API_ENDPOINTS from "../../apiConfig.js";
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import {useError} from "../../context/errorProvider/ErrorProvider.jsx";
 
 export default function ConfigureProduct({
                                              currentProduct, handleCurrentProduct,
-                                             currentProductErrors,
                                              units, onSubmitMethod,
                                              configureButtonName,
                                              isDisabled, setIsDisabled,
                                              children
                                          }) {
     const {setError} = useError();
+    const [quantityValue, setQuantityValue] = useState(currentProduct ? currentProduct.quantity : "");
+    const [unitValue, setUnitValue] = useState(currentProduct ? currentProduct.unit : "");
+
+    const [currentProductErrors, setCurrentProductErrors] = useState({product: "", unit: "", quantity: ""});
     const [createCustomUnit, setCreateCustomUnit] = useState(() => {
         return currentProduct?.custom_unit || {
             unit: null,
@@ -26,18 +29,20 @@ export default function ConfigureProduct({
     const handleCreateCustomUnitFormValues = (targetName, targetValue) => {
         setCreateCustomUnit(oldValues => ({...oldValues, [targetName]: targetValue}));
     };
+
     const handleCreateCustomUnitState = () => {
         setCreateCustomUnitState((prevState) => {
             const newState = !prevState;
             if (newState) {
                 setIsDisabled(true);
-                handleCreateCustomUnitFormValues("unit", currentProduct.unit.id);
+                handleCreateCustomUnitFormValues("unit", unitValue.id);
             } else {
                 setIsDisabled(false);
             }
             return newState;
         });
     };
+
     const handleCreateCustomUnitSubmit = (e) => {
         e.preventDefault();
         e.stopPropagation();
@@ -74,11 +79,57 @@ export default function ConfigureProduct({
         handleSubmit();
     };
 
+    useEffect(() => {
+        if (currentProduct.unit) {
+            const matchedUnit = units.find((unit) => unit.id === currentProduct.unit.id);
+            if (matchedUnit) {
+                setUnitValue(matchedUnit);
+            }
+        }
+    }, []);
+
     const resetCustomUnit = () => {
         setCreateCustomUnit({unit: null, custom_convert_to_base_rate: 0, id: null});
         handleCurrentProduct("custom_unit", null);
     };
 
+    const handleCurrentProductErrors = (field, message) => {
+        setCurrentProductErrors(oldValues => ({...oldValues, [field]: message}));
+    };
+
+    const handleButtonSubmit = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        let isInvalid = false;
+        if (quantityValue <= 0) {
+            handleCurrentProductErrors("quantity", "Quantity must be a positive integer!");
+            isInvalid = true;
+        }
+
+        if (!currentProduct.product) {
+            handleCurrentProductErrors("product", "Choose a product before adding!");
+            isInvalid = true;
+        }
+        if (!unitValue) {
+            handleCurrentProductErrors("unit", "Choose a unit before adding!");
+            isInvalid = true;
+        }
+
+        if (isInvalid) return
+
+        onSubmitMethod(quantityValue, unitValue);
+    };
+
+    const handleQuantityValue = (e) => {
+        handleCurrentProductErrors(e.target.name, "");
+        setQuantityValue(e.target.value);
+    };
+
+    const handleUnitValue = (e) => {
+        handleCurrentProductErrors(e.target.name, "");
+        setUnitValue(e.target.value);
+    };
 
     return (<Box
         sx={{
@@ -97,6 +148,9 @@ export default function ConfigureProduct({
             }}
         >
             {children}
+            {currentProductErrors.product && <Typography variant="caption" color="error">
+                {currentProductErrors.product}
+            </Typography>}
         </Box>
         <Box
             component="form"
@@ -105,26 +159,26 @@ export default function ConfigureProduct({
                 flexDirection: 'column',
                 gap: 2,
             }}
-            onSubmit={onSubmitMethod}
+            onSubmit={handleButtonSubmit}
         >
             <TextField
                 label="Quantity"
                 variant="outlined"
                 type="number"
-                onChange={(e) => handleCurrentProduct("quantity", e.target.value)}
+                onChange={handleQuantityValue}
                 required
                 error={!!currentProductErrors.quantity}
                 name="quantity"
                 helperText={currentProductErrors.quantity}
-                value={currentProduct.quantity !== 0 ? currentProduct.quantity : ""}
+                value={quantityValue}
                 disabled={isDisabled || !currentProduct.product}
             />
             <FormControl small="true" required>
                 <InputLabel id="unit-label">Unit</InputLabel>
                 <Select
                     labelId="unit-label"
-                    value={currentProduct.unit || ""}
-                    onChange={(e) => handleCurrentProduct('unit', e.target.value)}
+                    value={unitValue || ""}
+                    onChange={handleUnitValue}
                     variant="outlined"
                     required
                     label="Unit"
@@ -134,7 +188,7 @@ export default function ConfigureProduct({
                 >
                     {
                         units.map((unit) => (
-                            <MenuItem key={unit.id} value={unit}>
+                            <MenuItem key={`unit-${unit.id}`} value={unit}>
                                 {unit.name}
                             </MenuItem>
                         ))
@@ -158,13 +212,13 @@ export default function ConfigureProduct({
                 gap: 1.5,
             }}
         >
-            {currentProduct.unit && currentProduct.unit.is_customizable &&
+            {unitValue && unitValue.is_customizable &&
                 <>
                     {currentProduct.custom_unit ? <>
                         <Typography variant="body1">
-                            <span style={{fontWeight: 'bold'}}>{currentProduct.unit.name}</span> are {' '}
+                            <span style={{fontWeight: 'bold'}}>{unitValue.name}</span> are {' '}
                             <span
-                                style={{fontWeight: 'bold'}}>{createCustomUnit.custom_convert_to_base_rate} {currentProduct.unit.base_unit}</span>.
+                                style={{fontWeight: 'bold'}}>{createCustomUnit.custom_convert_to_base_rate} {unitValue.base_unit}</span>.
                         </Typography>
                         <Button
                             variant="contained"
@@ -177,10 +231,10 @@ export default function ConfigureProduct({
                     </> : <>
                         {!createCustomUnitState &&
                             <Typography variant="body1">
-                                <span style={{fontWeight: 'bold'}}>{currentProduct.unit.name}</span> are
+                                <span style={{fontWeight: 'bold'}}>{unitValue.name}</span> are
                                 usually {' '}
                                 <span
-                                    style={{fontWeight: 'bold'}}>{currentProduct.unit.convert_to_base_rate} {currentProduct.unit.base_unit}</span>.
+                                    style={{fontWeight: 'bold'}}>{unitValue.convert_to_base_rate} {unitValue.base_unit}</span>.
                             </Typography>}
                         <Button
                             variant="contained"
@@ -214,7 +268,8 @@ export default function ConfigureProduct({
                                     variant="contained"
                                     color="primary"
                                     sx={{padding: 1}}
-                                    onClick={handleCreateCustomUnitSubmit}>
+                                    onClick={handleCreateCustomUnitSubmit}
+                                >
                                     Create custom unit
                                 </Button>
                             </Box>

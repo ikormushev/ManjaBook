@@ -4,12 +4,15 @@ import {BrowserRouter as Router} from 'react-router-dom';
 import App from './App.jsx'
 import './index.css'
 import ErrorProvider from "./context/errorProvider/ErrorProvider.jsx";
+import SuccessProvider from "./context/successProvider/SuccessProvider.jsx";
 
 createRoot(document.getElementById('root')).render(
     <StrictMode>
         <Router>
             <ErrorProvider>
-                <App/>
+                <SuccessProvider>
+                    <App/>
+                </SuccessProvider>
             </ErrorProvider>
         </Router>
     </StrictMode>,

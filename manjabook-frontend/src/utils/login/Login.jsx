@@ -4,9 +4,11 @@ import {useAuth} from "../../context/authProvider/AuthProvider.jsx";
 import {Box, Button, CircularProgress, TextField, Typography} from '@mui/material';
 import {useError} from "../../context/errorProvider/ErrorProvider.jsx";
 import API_ENDPOINTS from "../../apiConfig.js";
+import {useSuccess} from "../../context/successProvider/SuccessProvider.jsx";
 
 export default function Login() {
     const { setError } = useError();
+    const {setSuccess} = useSuccess();
     const [loading, setLoading] = useState(false);
 
     const [formErrors, setFormErrors] = useState({ email: "", password: "" });
@@ -49,6 +51,7 @@ export default function Login() {
                     username: data.username,
                     userID: data.user_id,
                 });
+                setSuccess('Successful login!');
                 navigate('/');
             } else {
                 setError("Invalid email or password!");

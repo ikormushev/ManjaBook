@@ -23,7 +23,7 @@ export default function ProductCard({product, children}) {
                     {product.shopped_from && (
                         <div>
                             {product.shopped_from.map((shop) => (
-                                <span key={`${product.id}-${shop.id}`}>{shop.name}</span>
+                                <span key={`shop-${product.id}-${shop.id}`}>{shop.name}</span>
                             ))}
                         </div>
                     )}

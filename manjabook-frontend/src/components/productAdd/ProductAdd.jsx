@@ -4,7 +4,6 @@ import ProductCard from "../productCard/ProductCard.jsx";
 import MultiPageModal from "../multiPageModal/MultiPageModal.jsx";
 import {
     Button,
-    Typography,
 } from "@mui/material";
 import SearchBar from "../../utils/searchBar/SearchBar.jsx";
 import API_ENDPOINTS from "../../apiConfig.js";
@@ -21,10 +20,9 @@ export default function ProductAdd({units, onSendData, handleModalMode, showProd
     const [currentProduct, setCurrentProduct] = useState({
         product: null,
         unit: null,
-        quantity: 0,
+        quantity: "",
         custom_unit: null,
     });
-    const [currentProductErrors, setCurrentProductErrors] = useState({product: "", unit: "", quantity: ""});
 
     const [createProductErrors, setCreateProductErrors] = useState({
         name: [],
@@ -76,31 +74,12 @@ export default function ProductAdd({units, onSendData, handleModalMode, showProd
         fetchProducts();
     }, []);
 
-    const handleAddErrors = (field, message) => {
-        setCurrentProductErrors(oldValues => ({...oldValues, [field]: message}));
-    };
-
-    const handleAddCurrentProduct = (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-
-        if (currentProduct.quantity <= 0) {
-            handleAddErrors("quantity", "Quantity must be a positive integer!");
-        }
-
-        if (!currentProduct.product) {
-            handleAddErrors("product", "Choose a product before adding!");
-        }
-        if (!currentProduct.unit) {
-            handleAddErrors("unit", "Choose a unit before adding!");
-        }
-
-
-        if (currentProduct.product && currentProduct.unit && currentProduct.quantity > 0) {
+    const handleAddCurrentProduct = (quantity, unitValue) => {
+        if (currentProduct.product && unitValue && quantity > 0) {
             const data = {
                 product: currentProduct.product,
-                unit: currentProduct.unit,
-                quantity: Number(currentProduct.quantity),
+                unit: unitValue,
+                quantity: quantity,
                 custom_unit: currentProduct.custom_unit,
             };
 
@@ -110,7 +89,6 @@ export default function ProductAdd({units, onSendData, handleModalMode, showProd
     };
 
     const handleCurrentProductFormValues = (targetName, targetValue) => {
-        handleAddErrors(targetName, "");
         setCurrentProduct((oldValues) => (
             {
                 ...oldValues,
@@ -123,6 +101,7 @@ export default function ProductAdd({units, onSendData, handleModalMode, showProd
     };
 
     const handleTabChange = (event, newValue) => {
+        setIsDisabled(false);
         setActiveTab(newValue);
     };
 
@@ -185,16 +164,9 @@ export default function ProductAdd({units, onSendData, handleModalMode, showProd
         setCurrentProduct({
             product: null,
             unit: null,
-            quantity: 0,
+            quantity: "",
             custom_unit: null,
         });
-        setCurrentProductErrors({
-            product: "",
-            unit: "",
-            quantity: "",
-            custom_unit: ""
-        });
-        setCurrentProductErrors({product: "", unit: "", quantity: ""});
         handleModalMode();
     };
 
@@ -266,7 +238,6 @@ export default function ProductAdd({units, onSendData, handleModalMode, showProd
                     <ConfigureProduct
                         currentProduct={currentProduct}
                         handleCurrentProduct={handleCurrentProductFormValues}
-                        currentProductErrors={currentProductErrors}
                         units={units}
                         onSubmitMethod={handleAddCurrentProduct}
                         configureButtonName="Add"
@@ -298,9 +269,6 @@ export default function ProductAdd({units, onSendData, handleModalMode, showProd
                                 fats: 0,
                                 shopped_from: null,
                             }}/>}
-                        {currentProductErrors.product && <Typography variant="caption" color="error">
-                            {currentProductErrors.product}
-                        </Typography>}
                     </ConfigureProduct>
                 </div>
             </MultiPageModal>

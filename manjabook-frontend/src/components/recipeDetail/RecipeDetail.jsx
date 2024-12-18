@@ -7,13 +7,24 @@ import defaultUserPicture from "../../assets/images/default-user-picture.png";
 import defaultRecipeImage from "../../assets/images/default-recipe-image.png";
 import editButtonIcon from "../../assets/images/edit-button-icon.png";
 import deleteButtonIcon from '../../assets/images/delete-button-icon.png';
+import addButtonIcon from "../../assets/images/add-button-icon.png";
 import Loading from "../../utils/loading/Loading.jsx";
 import RecipeCreator from "../recipeCreator/RecipeCreator.jsx";
 import API_ENDPOINTS from "../../apiConfig.js";
 import {useError} from "../../context/errorProvider/ErrorProvider.jsx";
+import {IconButton} from "@mui/material";
+import {useAuth} from "../../context/authProvider/AuthProvider.jsx";
+import CustomModal from "../../utils/modal/CustomModal.jsx";
+import RecipeAddToCollection from "../recipeAddToCollection/RecipeAddToCollection.jsx";
+import {useSuccess} from "../../context/successProvider/SuccessProvider.jsx";
 
 export default function RecipeDetail() {
-    const { setError } = useError();
+    const {setError} = useError();
+    const {setSuccess} = useSuccess();
+    const {authState} = useAuth();
+    const isAuthenticated = authState.isAuthenticated;
+
+    const [showCollectionModal, setShowCollectionModal] = useState(false);
     const {recipeID, recipeSlug} = useParams();
     const [recipe, setRecipe] = useState(null);
     const [editRecipe, setEditRecipe] = useState(false);
@@ -51,6 +62,10 @@ export default function RecipeDetail() {
         year: formatedDate.getFullYear(),
     };
 
+    const handleModalMode = () => {
+        setShowCollectionModal(!showCollectionModal);
+    };
+
     const handleEditButton = () => {
         setEditRecipe(true);
     };
@@ -63,6 +78,7 @@ export default function RecipeDetail() {
                 });
                 if (recipeResponse.ok) {
                     navigate("/recipes");
+                    setSuccess("Recipe successfully deleted!");
                 }
             } catch (e) {
                 setError(e.message);
@@ -119,15 +135,27 @@ export default function RecipeDetail() {
                                 <p>🔥 {recipe.total_nutrients.calories} cals</p>
                             </div>
                         </div>
+                        <div className={styles.recipeMenuButtons}>
+                            {isAuthenticated &&
+                                <>
+                                    <IconButton onClick={handleModalMode}>
+                                        <img src={addButtonIcon} alt="addButtonIcon"/>
+                                    </IconButton>
+                                    <CustomModal isOpen={showCollectionModal} onClose={handleModalMode}>
+                                        <RecipeAddToCollection recipe={recipe}/>
+                                    </CustomModal>
+                                </>
+                            }
 
-                        {recipe.is_owner ? <div className={styles.recipeOwnerButtons}>
-                            <button onClick={handleEditButton}>
+                        </div>
+                        {recipe.is_owner && <div className={styles.recipeOwnerButtons}>
+                            <IconButton onClick={handleEditButton}>
                                 <img src={editButtonIcon} alt="editButtonIcon"/>
-                            </button>
-                            <button onClick={handleDeleteButton}>
+                            </IconButton>
+                            <IconButton onClick={handleDeleteButton}>
                                 <img src={deleteButtonIcon} alt="deleteButtonIcon"/>
-                            </button>
-                        </div> : null}
+                            </IconButton>
+                        </div>}
                     </div>
                 </div>
                 <div className={styles.recipeBodyContainer}>

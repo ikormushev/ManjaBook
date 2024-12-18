@@ -1,7 +1,6 @@
 import { useState } from "react";
 import {TextField, IconButton, Box} from "@mui/material";
 import searchButtonIcon from "../../assets/images/search-button-icon.png";
-import styles from './SearchBar.module.css';
 
 export default function SearchBar({ onSearch }) {
     const [searchError, setSearchError] = useState("");
@@ -38,12 +37,11 @@ export default function SearchBar({ onSearch }) {
                 error={!!searchError}
                 helperText={searchError}
             />
-
-            <div className={styles.buttonIconContainer}>
-                <IconButton onClick={handleSearch}>
-                    <img src={searchButtonIcon} alt="search" />
-                </IconButton>
-            </div>
+            <IconButton onClick={handleSearch} sx={{
+                width: "3em"
+            }}>
+                <img src={searchButtonIcon} alt="search" />
+            </IconButton>
         </Box>
     );
 }

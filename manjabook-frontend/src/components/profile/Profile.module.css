@@ -23,24 +23,19 @@
     max-width: 15em;
 }
 
-.profileHeader .profilePicture img, .recipeImage img {
-    width: 100%;
-    height: auto;
-}
-
 .profileInfo {
     flex: 1;
     margin-left: 0.5em;
 }
 
-.profileBody .profileRecipesContainer {
+.profileTabContainer {
     padding: 1em;
     display: flex;
     gap: 1.5em;
     flex-wrap: wrap;
 }
 
-.recipePost {
+.post {
     display: block;
     position: relative;
     border-radius: 1em;
@@ -49,11 +44,11 @@
     transition: transform 0.3s ease-in-out;
 }
 
-.recipePost:hover {
+.post:hover {
     transform: scale(1.05);
 }
 
-.recipeImage {
+.postImage {
     position: relative;
     overflow: hidden;
     max-width: 20em;
@@ -79,6 +74,6 @@
     height: 99%;
 }
 
-.recipeImage:hover .hoverOverlay {
+.postImage:hover .hoverOverlay {
     opacity: 1;
 }

@@ -9,38 +9,26 @@ import ConfigureProduct from "../configureProduct/ConfigureProduct.jsx";
 
 export default function ProductDetail({productInfo, units, onDeleteProduct, onEditProduct}) {
     const [currentProduct, setCurrentProduct] = useState(productInfo);
-    const [currentProductErrors, setCurrentProductErrors] = useState({product: "", unit: "", quantity: ""});
     const [showProductEditModal, setShowProductEditModal] = useState(false);
     const [isDisabled, setIsDisabled] = useState(false);
+
+    const handleProductEdit = (targetName, targetValue) => {
+        setCurrentProduct(oldValues => ({...oldValues, [targetName]: targetValue}));
+    };
 
     const handleModalMode = () => {
         setShowProductEditModal(!showProductEditModal);
     };
-    const handleEditErrors = (field, message) => {
-        setCurrentProductErrors(oldValues => ({...oldValues, [field]: message}));
-    };
 
     const handleDelete = () => {
-        onDeleteProduct(currentProduct)
+        onDeleteProduct(currentProduct);
     };
 
-    const handleEdit = (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-
-        if (currentProduct.quantity <= 0) {
-            handleEditErrors("quantity", "Quantity must be a positive integer!");
-            return
-        }
-
-        if (currentProduct.product && currentProduct.unit && currentProduct.quantity) {
-            onEditProduct(currentProduct);
+    const handleEdit = (quantityValue, unitValue) => {
+        if (currentProduct.product && unitValue && quantityValue > 0) {
+            onEditProduct(currentProduct, quantityValue, unitValue);
             handleModalMode();
         }
-    };
-
-    const handleProductSelect = (targetName, targetValue) => {
-        setCurrentProduct(oldValues => ({...oldValues, [targetName]: targetValue}));
     };
 
     return (
@@ -73,8 +61,7 @@ export default function ProductDetail({productInfo, units, onDeleteProduct, onEd
                     <h3>Edit Product</h3>
                     <ConfigureProduct
                         currentProduct={currentProduct}
-                        handleCurrentProduct={handleProductSelect}
-                        currentProductErrors={currentProductErrors}
+                        handleCurrentProduct={handleProductEdit}
                         units={units}
                         onSubmitMethod={handleEdit}
                         configureButtonName="Edit"

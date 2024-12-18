@@ -15,7 +15,10 @@ export default function RecipesDashboard() {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const recipesResponse = await fetch(API_ENDPOINTS.recipes);
+                const recipesResponse = await fetch(API_ENDPOINTS.recipes, {
+                    method: "GET",
+                    credentials: "include",
+                });
                 if (recipesResponse.ok) {
                     const data = await recipesResponse.json();
                     setRecipes(data);
@@ -33,7 +36,10 @@ export default function RecipesDashboard() {
 
     const handleSearch = async (searchTerm) => {
         try {
-            const response = await fetch(`${API_ENDPOINTS.recipes}?search=${searchTerm}`);
+            const response = await fetch(`${API_ENDPOINTS.recipes}?search=${searchTerm}`, {
+                method: "GET",
+                credentials: "include",
+            });
 
             if (response.ok) {
                 const data = await response.json();

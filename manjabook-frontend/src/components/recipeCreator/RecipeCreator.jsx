@@ -8,11 +8,13 @@ import addButtonIcon from "../../assets/images/add-button-icon.png";
 import defaultRecipeImage from "../../assets/images/default-recipe-image.png";
 import {useError} from "../../context/errorProvider/ErrorProvider.jsx";
 import API_ENDPOINTS from "../../apiConfig.js";
+import {useSuccess} from "../../context/successProvider/SuccessProvider.jsx";
 
 export default function RecipeCreator({recipeData = null}) {
     const {setError} = useError();
+    const {setSuccess} = useSuccess();
     const navigate = useNavigate();
-    const [totalProducts, setTotalProducts] = useState(0);
+    const [totalProducts, setTotalProducts] = useState(recipeData ? recipeData.products.length : 0);
 
     const [showProductModal, setShowProductModal] = useState(false);
     const [units, setUnits] = useState([]);
@@ -31,7 +33,6 @@ export default function RecipeCreator({recipeData = null}) {
         const recipeTemplate = {
             name: "",
             quick_description: "",
-            products: [],
             preparation: "",
             portions: 0,
             time_to_prepare: 0,
@@ -45,42 +46,92 @@ export default function RecipeCreator({recipeData = null}) {
 
     const [selectedProducts, setSelectedProducts] = useState(recipeData ? recipeData.products : []);
 
-
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoadingFormValues(true);
         const formData = new FormData();
 
-        if (!formValues.image) {
-            delete formValues.image;
-        }
-        for (const key in formValues) {
-            formData.append(key, formValues[key]);
-        }
-
-        formData.append('products', JSON.stringify(selectedProducts.map((itemInfo) => {
-            return {
-                product_id: itemInfo.product.id,
-                unit_id: itemInfo.unit.id,
-                quantity: Number(itemInfo.quantity),
-                custom_unit_id: itemInfo.custom_unit.id
-            };
-        })));
-
         try {
-            const response = await fetch(recipeData ?
-                `${API_ENDPOINTS.recipes}${recipeData.id}` :
-                API_ENDPOINTS.recipes, {
-                method: recipeData ? "PUT" : "POST",
-                body: formData,
-                credentials: "include",
-            });
+            let response;
+            const isEditMode = Boolean(recipeData);
 
+            const makeRequest = async (url, method, body, headers = {}) => {
+                return await fetch(url, {
+                    method,
+                    body,
+                    headers,
+                    credentials: "include",
+                });
+            };
+
+            if (isEditMode) {
+                const editData = {
+                    'name': formValues.name,
+                    'quick_description': formValues.quick_description,
+                    'preparation': formValues.preparation,
+                    'portions': formValues.portions,
+                    'time_to_prepare': formValues.time_to_prepare,
+                    'time_to_cook': formValues.time_to_cook,
+                    'products': selectedProducts.map((itemInfo) => {
+                        return {
+                            recipe_id: recipeData.id,
+                            product_id: itemInfo.product.id,
+                            unit_id: itemInfo.unit.id,
+                            quantity: Number(itemInfo.quantity),
+                            custom_unit_id: itemInfo.custom_unit?.id || null
+                        };
+                    })
+                }
+
+                response = await makeRequest(
+                    `${API_ENDPOINTS.recipes}${recipeData.id}/`,
+                    "PUT",
+                    JSON.stringify(editData),
+                    {'Content-Type': 'application/json',}
+                );
+
+                if (formValues.image) {
+                    formData.append('image', formValues.image);
+                    const fileResponse = await makeRequest(
+                        `${API_ENDPOINTS.recipes}${recipeData.id}/image/`,
+                        "PATCH",
+                        formData
+                    );
+                }
+            } else {
+                formData.append('name', formValues.name);
+                formData.append('quick_description', formValues.quick_description);
+                formData.append('preparation', formValues.preparation);
+                formData.append('portions', formValues.portions);
+                formData.append('time_to_prepare', formValues.time_to_prepare);
+                formData.append('time_to_cook', formValues.time_to_prepare);
+
+                formData.append('products', JSON.stringify(selectedProducts.map((itemInfo) => {
+                    return {
+                        product_id: itemInfo.product.id,
+                        unit_id: itemInfo.unit.id,
+                        quantity: Number(itemInfo.quantity),
+                        custom_unit_id: itemInfo.custom_unit?.id || null
+                    };
+                })));
+                if (formValues.image) {
+                    formData.append('image', formValues.image);
+                }
+
+                response = await makeRequest(
+                    API_ENDPOINTS.recipes,
+                    "POST",
+                    formData
+                );
+            }
             if (response.ok) {
+                if (isEditMode) {
+                    setSuccess("Recipe successfully edited!");
+                }
                 navigate("/recipes");
             } else {
                 const data = await response.json();
-
+                console.log(data);
                 setFormErrors(oldValues => ({...oldValues, ...data}));
             }
         } catch (error) {
@@ -92,12 +143,18 @@ export default function RecipeCreator({recipeData = null}) {
 
     const fileInputRef = useRef(null);
     const changeHandler = (e) => {
+        setFormErrors(oldValues => ({
+            ...oldValues,
+            [e.target.name]: "",
+        }));
+
         const targetType = e.target.type;
         let targetValue = e.target.value;
 
         if (targetType === 'file') {
             targetValue = e.target.files[0];
         }
+
         setFormValues(oldValues => ({
             ...oldValues,
             [e.target.name]: targetValue,
@@ -116,6 +173,12 @@ export default function RecipeCreator({recipeData = null}) {
     };
 
     useEffect(() => {
+        if (recipeData) {
+            selectedProducts.forEach((product) => {
+                product.uniqueKey = `${totalProducts}-${product.product.id}`;
+            });
+        }
+
         const fetchUnits = async () => {
             try {
                 const response = await fetch(API_ENDPOINTS.units, {
@@ -132,11 +195,11 @@ export default function RecipeCreator({recipeData = null}) {
             }
         };
 
-        fetchUnits()
+        fetchUnits();
     }, []);
 
     const handleSelectedProducts = (data) => {
-        setSelectedProducts((oldValues) => {
+        setSelectedProducts(oldValues => {
             const existingIndex = oldValues.findIndex(
                 (itemInfo) =>
                     itemInfo.product.id === data.product.id &&
@@ -156,24 +219,40 @@ export default function RecipeCreator({recipeData = null}) {
             const updatedProducts = [...oldValues];
             updatedProducts[existingIndex] = {
                 ...updatedProducts[existingIndex],
-                quantity: updatedProducts[existingIndex].quantity + data.quantity,
+                quantity: Number(updatedProducts[existingIndex].quantity) + Number(data.quantity),
             };
+
+
             return updatedProducts;
         });
     };
 
     const handleDeleteProduct = (data) => {
+        setFormErrors(oldValues => ({
+            ...oldValues,
+            products: "",
+        }));
         setSelectedProducts(oldValues =>
             oldValues.filter((itemInfo) => itemInfo.uniqueKey !== data.uniqueKey));
+
+        setSuccess("Product successfully deleted!");
     };
 
-    const handleEditProduct = (data) => {
-        setSelectedProducts(oldValues =>
-            oldValues.map((itemInfo) =>
-                itemInfo.uniqueKey !== data.uniqueKey
-                    ? itemInfo
-                    : data)
+    const handleEditProduct = (data, quantityValue, unitValue) => {
+        const existingIndex = selectedProducts.findIndex(
+            (itemInfo) =>
+                itemInfo.product.id === data.product.id &&
+                itemInfo.unit.id === data.unit.id
         );
+        if (existingIndex !== -1) {
+            setError("Cannot edit to a product with a unit that already exists!");
+        } else {
+            setSelectedProducts(oldValues => oldValues.map((itemInfo) =>
+                itemInfo.uniqueKey !== data.uniqueKey ? itemInfo : {...data, quantity: quantityValue, unit: unitValue}
+            ));
+            setFormErrors(prev => ({ ...prev, products: "" }));
+            setSuccess("Product successfully edited!");
+        }
     };
 
     const handleModalMode = () => {
@@ -200,7 +279,7 @@ export default function RecipeCreator({recipeData = null}) {
             >
                 <div className={styles.recipeImageInfo}>
                     <div className={styles.recipeImageContainer}>
-                        {recipeData ?
+                        {recipeData && recipeData.image ?
                             <img src={recipeData.image} alt="recipe_image"/> :
                             <img src={defaultRecipeImage} alt="recipe_image"/>}
 
@@ -234,7 +313,7 @@ export default function RecipeCreator({recipeData = null}) {
                     </div>
                     {formValues.image &&
                         <Typography variant="caption" color="success">
-                            Image uploaded!
+                            Image uploaded successfully! The image will be visualised after recipe submission.
                         </Typography>
                     }
                     {formErrors.image && <Typography variant="caption" color="error">
@@ -300,7 +379,7 @@ export default function RecipeCreator({recipeData = null}) {
                             onChange={changeHandler}
                             fullWidth
                             multiline
-                            rows={4}
+                            rows={1}
                             error={!!formErrors.quick_description}
                             helperText={formErrors.quick_description || ''}
                             variant="outlined"
@@ -315,7 +394,7 @@ export default function RecipeCreator({recipeData = null}) {
                             onChange={changeHandler}
                             fullWidth
                             multiline
-                            rows={4}
+                            rows={10}
                             error={!!formErrors.preparation}
                             helperText={formErrors.preparation || ''}
                             variant="outlined"
@@ -340,7 +419,8 @@ export default function RecipeCreator({recipeData = null}) {
                         </div>
                         <div className={styles.selectedProductsBody}>
                             {selectedProducts.map((productInfo) => (
-                                <div key={productInfo.uniqueKey}>
+                                <div
+                                    key={`product-${productInfo.product.id}-${productInfo.unit.id}-${productInfo.quantity}`}>
                                     <ProductDetail productInfo={productInfo}
                                                    onDeleteProduct={handleDeleteProduct}
                                                    onEditProduct={handleEditProduct}
@@ -349,6 +429,9 @@ export default function RecipeCreator({recipeData = null}) {
                                 </div>
                             ))}
                         </div>
+                        {formErrors.products && <Typography variant="caption" color="error">
+                            {formErrors.products}
+                        </Typography>}
                     </div>
 
                     <div className={styles.submitButtonContainer}>

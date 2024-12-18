@@ -1,8 +1,8 @@
 import {useNavigate} from "react-router-dom";
 import {useAuth} from "../../context/authProvider/AuthProvider.jsx";
-import styles from "./Logout.module.css";
 import API_ENDPOINTS from "../../apiConfig.js";
 import {useError} from "../../context/errorProvider/ErrorProvider.jsx";
+import {Button} from "@mui/material";
 
 export default function Logout() {
     const navigate = useNavigate();
@@ -31,8 +31,13 @@ export default function Logout() {
     };
 
     return (
-        <button onClick={handleLogout} className={styles.logoutButton}>
+        <Button
+            variant="contained"
+            color="primary"
+            sx={{padding: 0.75}}
+            onClick={handleLogout}
+        >
             Logout
-        </button>
+        </Button>
     );
 }

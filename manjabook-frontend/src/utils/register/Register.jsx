@@ -3,11 +3,13 @@ import {Link, useNavigate} from "react-router-dom";
 import {Box, Button, CircularProgress, TextField, Typography} from "@mui/material";
 import API_ENDPOINTS from "../../apiConfig.js";
 import {useError} from "../../context/errorProvider/ErrorProvider.jsx";
+import {useSuccess} from "../../context/successProvider/SuccessProvider.jsx";
 
 
 export default function Register() {
     const navigate = useNavigate();
     const {setError} = useError();
+    const {setSuccess} = useSuccess();
     const [loading, setLoading] = useState(false);
 
     const [formErrors, setFormErrors] = useState({ email: "", username: "", password: "" });
@@ -43,6 +45,7 @@ export default function Register() {
             });
 
             if (response.ok) {
+                setSuccess('Successfully registered. Login now!');
                 navigate('/login');
             } else {
                 const errorData = await response.json();

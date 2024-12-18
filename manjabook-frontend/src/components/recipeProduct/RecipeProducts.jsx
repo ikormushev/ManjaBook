@@ -16,17 +16,14 @@ export default function RecipeProducts({products}) {
 
                 return  <
                     Accordion
-                    expanded={expanded === product.id}
-                    onChange={handleAccordionChange(product.id)}
-                    key={`${product.id}-${product.name}`}
+                    expanded={expanded === `${product.id}-${productInfo.unit.id}`}
+                    onChange={handleAccordionChange(`${product.id}-${productInfo.unit.id}`)}
+                    key={`${product.id}-${product.name}-${productInfo.unit.id}`}
                     disableGutters
                 >
-                    <AccordionSummary
-                        aria-controls={`panel-${product.id}-content`}
-                        id={`panel-${product.id}-header`}
-                    >
+                    <AccordionSummary>
                         <Typography>
-                            {product.name} - {productInfo.quantity} {productInfo.unit.abbreviation}
+                            {product.name} - {productInfo.quantity} {productInfo.unit.abbreviation} {productInfo.unit.is_customizable && (productInfo.custom_unit ? `(${productInfo.custom_unit.custom_convert_to_base_rate} ${productInfo.unit.base_unit})`: `(${productInfo.unit.convert_to_base_rate} ${productInfo.unit.base_unit})`)}
                         </Typography>
 
                     </AccordionSummary>

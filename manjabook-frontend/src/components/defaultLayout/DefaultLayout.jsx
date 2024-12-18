@@ -4,10 +4,10 @@ import {Outlet} from "react-router-dom";
 
 export default function DefaultLayout() {
     return (
-        <>
+        <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
             <Header />
             <Outlet/>
             <Footer/>
-        </>
+        </div>
     );
 }
