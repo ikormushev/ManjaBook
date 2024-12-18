@@ -1,12 +1,16 @@
+from rest_framework.response import Response
+
 from ManjaBook.accounts.permissions import IsOwnerOrAdmin
 from ManjaBook.inventory.models import Product, Shop, Unit, CustomUnit, Recipe, RecipeProduct, RecipesCollection, \
     SavedRecipesCollection
-from rest_framework import generics as api_views, permissions
+from rest_framework import generics as api_views, permissions, status
 from ManjaBook.inventory.serializers import ProductCreateSerializer, ShopSerializer, \
-    UnitBaseSerializer, CustomUnitCreateSerializer, RecipeProductSerializer, BaseRecipeSerializer, \
+    UnitBaseSerializer, CustomUnitCreateSerializer, RecipeProductSerializer, SimpleRecipeSerializer, \
     ProductBaseSerializer, RecipeDetailSerializer, RecipeCreateSerializer, CustomUnitListSerializer, \
-    RecipesCollectionSerializer, RecipesCollectionCreateSerializer, RecipesCollectionDetailSerializer, \
-    SavedRecipesCollectionBaseSerializer, SavedRecipesCollectionCreateSerializer, SavedRecipesCollectionDetailSerializer
+    RecipesCollectionCreateSerializer, RecipesCollectionDetailSerializer, \
+    SavedRecipesCollectionBaseSerializer, SavedRecipesCollectionCreateSerializer, \
+    SavedRecipesCollectionDetailSerializer, RecipesCollectionModifySerializer, \
+    SimpleRecipesCollectionSerializer, RecipeProductCreateSerializer, RecipeUpdateSerializer, RecipeImageUpdateSerializer
 
 
 class ShopListView(api_views.ListCreateAPIView):
@@ -107,14 +111,36 @@ class CustomUnitDetailView(api_views.RetrieveAPIView):
     permission_classes = [permissions.AllowAny]
 
 
-class RecipeProductListView(api_views.ListAPIView):
+class RecipeProductListView(api_views.ListCreateAPIView):
+    list_serializer_class = RecipeProductSerializer
+    create_serializer_class = RecipeProductCreateSerializer
+
     queryset = RecipeProduct.objects.all()
-    serializer_class = RecipeProductSerializer
-    permission_classes = [permissions.AllowAny]
+    serializer_class = list_serializer_class
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+    def get_serializer_class(self):
+        if self.request.method == 'GET':
+            return self.serializer_class
+        return self.create_serializer_class
+
+
+class RecipeProductDetailView(api_views.RetrieveUpdateDestroyAPIView):
+    list_serializer_class = RecipeProductSerializer
+    create_serializer_class = RecipeProductCreateSerializer
+
+    queryset = RecipeProduct.objects.all()
+    serializer_class = list_serializer_class
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+    def get_serializer_class(self):
+        if self.request.method == 'GET':
+            return self.serializer_class
+        return self.create_serializer_class
 
 
 class RecipeListView(api_views.ListCreateAPIView):
-    list_serializer_class = BaseRecipeSerializer
+    list_serializer_class = SimpleRecipeSerializer
     create_serializer_class = RecipeCreateSerializer
 
     serializer_class = list_serializer_class
@@ -126,7 +152,8 @@ class RecipeListView(api_views.ListCreateAPIView):
         return self.serializer_class
 
     def get_queryset(self):
-        queryset = Recipe.objects.select_related('created_by').prefetch_related('recipe_products')
+        queryset = (Recipe.objects.select_related('created_by')
+                    .prefetch_related('recipe_products'))
 
         search_term = self.request.query_params.get('search', None)
 
@@ -138,45 +165,81 @@ class RecipeListView(api_views.ListCreateAPIView):
     def perform_create(self, serializer):
         serializer.save(created_by=self.request.user.profile)
 
-    def get_authenticators(self):
-        if self.request.method == 'GET':
-            return []
-        return super().get_authenticators()
-
 
 class RecipeDetailView(api_views.RetrieveUpdateDestroyAPIView):
-    serializer_class = RecipeDetailSerializer
+    detail_serializer_class = RecipeDetailSerializer
+    update_serializer_class = RecipeUpdateSerializer
+    serializer_class = detail_serializer_class
 
     def get_queryset(self):
         return (Recipe.objects
                 .prefetch_related('recipe_products')
                 .prefetch_related('recipe_products__unit', 'recipe_products__custom_unit'))
 
+    def get_serializer_class(self):
+        if self.request.method == 'GET':
+            return self.serializer_class
+        return self.update_serializer_class
+
     def get_permissions(self):
         if self.request.method == 'GET':
-            return [permissions.AllowAny()]
+            return [permissions.IsAuthenticatedOrReadOnly()]
         return [IsOwnerOrAdmin()]
 
 
+class RecipeMultipartUpdateView(api_views.UpdateAPIView):
+    serializer_class = RecipeUpdateSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsOwnerOrAdmin]
+
+    def get_queryset(self):
+        return (Recipe.objects
+                .prefetch_related('recipe_products')
+                .prefetch_related('recipe_products__unit',
+                                  'recipe_products__custom_unit'))
+
+    def update(self, request, *args, **kwargs):
+        if not request.content_type.startswith('multipart/form-data'):
+            return Response({'error': 'Expected multipart data.'},
+                            status=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
+
+        if 'image' in request.data and len(request.data.keys()) == 1:
+            self.serializer_class = RecipeImageUpdateSerializer
+
+        return super().update(request, *args, **kwargs)
+
+    def get_serializer_class(self):
+        if self.request.method == 'PATCH' and 'image' in self.request.data:
+            return RecipeImageUpdateSerializer
+        return self.serializer_class
+
+
 class RecipesCollectionListView(api_views.ListCreateAPIView):
-    list_serializer_class = RecipesCollectionSerializer
+    list_serializer_class = SimpleRecipesCollectionSerializer
     create_serializer_class = RecipesCollectionCreateSerializer
 
     serializer_class = list_serializer_class
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
     def get_queryset(self):
-        return (RecipesCollection.objects
-                .select_related('created_by')
-                .prefetch_related('recipes'))
+        queryset = RecipesCollection.objects.select_related('created_by').prefetch_related('recipes')
+        user_id = self.request.query_params.get('userId', None)
+        if user_id:
+            queryset = queryset.filter(created_by=user_id)
+
+        return queryset
 
     def get_serializer_class(self):
         if self.request.method == 'POST':
             return self.create_serializer_class
         return self.serializer_class
 
+    def perform_create(self, serializer):
+        serializer.save(created_by=self.request.user.profile)
+
 
 class RecipesCollectionDetailView(api_views.RetrieveUpdateDestroyAPIView):
+    detail_serializer_class = RecipesCollectionDetailSerializer
+    modify_serializer_class = RecipesCollectionModifySerializer
     serializer_class = RecipesCollectionDetailSerializer
 
     def get_queryset(self):
@@ -188,6 +251,11 @@ class RecipesCollectionDetailView(api_views.RetrieveUpdateDestroyAPIView):
         if self.request.method == 'GET':
             return [permissions.AllowAny()]
         return [IsOwnerOrAdmin()]
+
+    def get_serializer_class(self):
+        if self.request.method == 'GET':
+            return self.detail_serializer_class
+        return self.modify_serializer_class
 
 
 class SavedRecipesCollectionListView(api_views.ListCreateAPIView):

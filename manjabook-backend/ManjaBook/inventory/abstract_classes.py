@@ -105,11 +105,11 @@ class BasicRecipeInfo(models.Model):
                                         validators=[
                                             MinValueValidator(1, 'Portions must be at least 1!'),
                                             MaxValueValidator(100, 'Portions can be at maximum 100!')])
-    time_to_cook = models.SmallIntegerField(default=1, validators=[
-        MinValueValidator(1, 'Time to cook must be set at least 1 minute!'),
+    time_to_cook = models.SmallIntegerField(default=0, validators=[
+        MinValueValidator(0, 'Time to cook must be set at least 0 minute!'),
         MaxValueValidator(1440, 'Time to cook can be set at maximum 1440 minutes!')])
-    time_to_prepare = models.SmallIntegerField(default=1, validators=[
-        MinValueValidator(1, 'Time to prepare must be set at least 1 minute!'),
+    time_to_prepare = models.SmallIntegerField(default=0, validators=[
+        MinValueValidator(0, 'Time to prepare must be set at least 0 minute!'),
         MaxValueValidator(1440, 'Time to prepare can be set at maximum 1440 minutes!')])
     preparation = models.TextField(null=False,
                                    validators=[MinLengthValidator(3,

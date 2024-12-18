@@ -59,17 +59,17 @@ class ProfileListView(api_views.ListAPIView):
 
 class UserProfileView(api_views.RetrieveAPIView):
     serializer_class = ProfileSerializer
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
     def get_queryset(self):
         return (Profile.objects.all()
                 .select_related('user')
-                .prefetch_related('collections').prefetch_related('recipe_set'))
+                .prefetch_related('owned_collections').prefetch_related('recipe_set'))
 
-    def get_authenticators(self):
-        if self.request.method == 'GET':
-            return []
-        return super().get_authenticators()
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context
 
 
 class CheckAuthenticationView(base_api_views.APIView):

@@ -18,10 +18,15 @@ urlpatterns = [
     ])),
     path('recipes-products/', include([
         path('', views.RecipeProductListView.as_view(), name='api_recipes_products_list'),
+        path('<int:pk>/', views.RecipeProductDetailView.as_view(), name='api_recipes_products_detail'),
     ])),
     path('recipes/', include([
         path('', views.RecipeListView.as_view(), name='api_recipes_list'),
-        path('<int:pk>/', views.RecipeDetailView.as_view(), name='api_recipes_detail'),
+
+        path('<int:pk>/', include([
+            path('', views.RecipeDetailView.as_view(), name='api_recipes_detail'),
+            path('image/', views.RecipeMultipartUpdateView.as_view(), name='api_recipes_detail_multipart'),
+    ])),
     ])),
     path('recipes-collections/', include([
         path('', views.RecipesCollectionListView.as_view(), name='api_recipes_collection_list'),

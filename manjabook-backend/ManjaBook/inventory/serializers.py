@@ -1,5 +1,7 @@
+from django.db import DataError, transaction
 from rest_framework import serializers
 from django.utils.text import slugify
+from rest_framework.exceptions import ValidationError
 
 from unidecode import unidecode
 
@@ -75,9 +77,9 @@ class CustomUnitCreateSerializer(CustomUnitBaseSerializer):
 
 
 class RecipeProductSerializer(serializers.ModelSerializer):
-    product = ProductBaseSerializer(read_only=True)
-    unit = UnitBaseSerializer(read_only=True)
-    custom_unit = CustomUnitBaseSerializer(read_only=True)
+    product = ProductBaseSerializer()
+    unit = UnitBaseSerializer()
+    custom_unit = CustomUnitBaseSerializer()
 
     class Meta:
         model = RecipeProduct
@@ -86,50 +88,109 @@ class RecipeProductSerializer(serializers.ModelSerializer):
                   'saturated_fats', 'salt', 'fibre']
 
 
-class BaseRecipeSerializer(serializers.ModelSerializer):
-    total_nutrients = serializers.SerializerMethodField()
-    created_by = BaseProfileSerializer(read_only=True)
+class RecipeProductCreateSerializer(serializers.ModelSerializer):
+    recipe_id = serializers.PrimaryKeyRelatedField(queryset=Recipe.objects.all(), source='recipe')
+    product_id = serializers.PrimaryKeyRelatedField(queryset=Product.objects.all(), source='product')
+    unit_id = serializers.PrimaryKeyRelatedField(queryset=Unit.objects.all(), source='unit')
+    custom_unit_id = serializers.PrimaryKeyRelatedField(queryset=CustomUnit.objects.all(), source='custom_unit',
+                                                        allow_null=True, required=False)
 
     class Meta:
+        model = RecipeProduct
+        fields = ['recipe_id', 'product_id', 'quantity', 'unit_id', 'custom_unit_id']
+
+
+class BaseRecipeSerializer(serializers.ModelSerializer):
+    class Meta:
         model = Recipe
-        fields = ['id', 'name', 'quick_description',
-                  'time_to_cook', 'time_to_prepare',
-                  'slug', 'image', 'created_by', 'total_nutrients']
-        read_only_fields = ['id', 'slug', 'created_by', 'total_nutrients']
+        fields = ['id', 'name', 'slug', 'created_by']
+        read_only_fields = ['id', 'slug', 'created_by']
+
+
+class SimpleRecipeSerializer(BaseRecipeSerializer):
+    total_nutrients = serializers.SerializerMethodField(read_only=True)
+    created_by = BaseProfileSerializer(read_only=True)
+
+    class Meta(BaseRecipeSerializer.Meta):
+        fields = (BaseRecipeSerializer.Meta.fields +
+                  ['quick_description', 'time_to_cook', 'time_to_prepare', 'image', 'total_nutrients'])
+        read_only_fields = BaseRecipeSerializer.Meta.read_only_fields + ['total_nutrients']
 
     def get_total_nutrients(self, obj):
         return obj.calculate_total_nutrients()
 
 
-class RecipeDetailSerializer(BaseRecipeSerializer):
+class RecipeDetailSerializer(SimpleRecipeSerializer):
     products = RecipeProductSerializer(source='recipe_products', many=True, read_only=True)
     is_owner = serializers.SerializerMethodField()
 
-    class Meta(BaseRecipeSerializer.Meta):
-        fields = BaseRecipeSerializer.Meta.fields + ['portions', 'products', 'preparation', 'created_at', 'is_owner']
+    class Meta(SimpleRecipeSerializer.Meta):
+        fields = SimpleRecipeSerializer.Meta.fields + ['portions', 'products', 'preparation', 'created_at', 'is_owner']
 
     def get_is_owner(self, obj):
         request = self.context.get('request', None)
         if request and request.user.is_authenticated:
-            return obj.created_by.user == request.user
+            return obj.created_by.user == request.user or request.user.groups.filter(name="Admins").exists()
         return False
+
+
+class RecipeUpdateSerializer(serializers.ModelSerializer):
+    products = RecipeProductCreateSerializer(many=True, source='recipe_products', required=False)
+    is_owner = serializers.SerializerMethodField(read_only=True)
+
+    def get_is_owner(self, obj):
+        request = self.context.get('request', None)
+        if request and request.user.is_authenticated:
+            return obj.created_by.user == request.user or request.user.groups.filter(name="Admins").exists()
+        return False
+
+    class Meta:
+        model = Recipe
+        fields = ['id', 'name', 'quick_description',
+                  'time_to_cook', 'time_to_prepare',
+                  'products', 'portions', 'preparation', 'is_owner']
+        read_only_fields = ['id']
 
     def update(self, instance, validated_data):
         if 'name' in validated_data:
             instance.slug = slugify(unidecode(validated_data['name']))
 
+        products_data = validated_data.pop('recipe_products', [])
+        if not products_data:
+            raise serializers.ValidationError({'products': "No products provided."})
+
+        existing_product_ids = set(instance.recipe_products.values_list('id', flat=True))
+
+        incoming_product_ids = set()
+
+        for product_data in products_data:
+            try:
+                recipe_product, created = (RecipeProduct.objects.
+                                           update_or_create(recipe=instance,
+                                                            quantity=product_data['quantity'],
+                                                            unit=product_data['unit'],
+                                                            custom_unit=product_data['custom_unit'],
+                                                            product=product_data['product'],
+                                                            ))
+                incoming_product_ids.add(recipe_product.id)
+            except DataError:
+                error_unit = product_data['unit']
+                error_quantity = product_data['quantity']
+                error_product = product_data['product']
+                raise ValidationError({'products': f"Product {error_product.name} - "
+                                                   f"Quantity {error_quantity} too large "
+                                                   f"for the specified unit - {error_unit.name}!"})
+        products_to_delete = existing_product_ids - incoming_product_ids
+        RecipeProduct.objects.filter(id__in=products_to_delete).delete()
         return super().update(instance, validated_data)
 
 
-class RecipeProductCreateSerializer(serializers.ModelSerializer):
-    product_id = serializers.PrimaryKeyRelatedField(queryset=Product.objects.all(), source='product')
-    unit_id = serializers.PrimaryKeyRelatedField(queryset=Unit.objects.all(), source='unit')
-    custom_unit_id = serializers.PrimaryKeyRelatedField(queryset=CustomUnit.objects.all(), source='custom_unit',
-                                                        required=False)
+class RecipeImageUpdateSerializer(serializers.ModelSerializer):
+    image = serializers.ImageField(required=True)
 
     class Meta:
-        model = RecipeProduct
-        fields = ['product_id', 'quantity', 'unit_id', 'custom_unit_id']
+        model = Recipe
+        fields = ['image']
 
 
 class RecipeCreateSerializer(serializers.ModelSerializer):
@@ -146,11 +207,27 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         if not products_data:
             raise serializers.ValidationError({'products': "No products provided."})
 
-        recipe = Recipe.objects.create(**validated_data)
+        with transaction.atomic():
+            recipe = Recipe.objects.create(**validated_data)
 
-        for product_data in products_data:
-            recipe_product = RecipeProduct(recipe=recipe, **product_data)
-            recipe_product.save()
+            for product_data in products_data:
+                error_dict = {}
+                try:
+                    recipe_product = RecipeProduct(recipe=recipe, **product_data)
+                    error_dict = {
+                        "unit": recipe_product.unit,
+                        "quantity": recipe_product.quantity,
+                        "product": recipe_product.product,
+                    }
+
+                    recipe_product.save()
+                except DataError:
+                    error_unit = error_dict["unit"]
+                    error_quantity = error_dict["quantity"]
+                    error_product = error_dict["product"]
+                    raise ValidationError({'products': f"Product {error_product.name} - "
+                                                       f"Quantity {error_quantity} too large "
+                                                       f"for the specified unit - {error_unit.name}!"})
 
         return recipe
 
@@ -160,21 +237,28 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
 
 
 class BaseRecipesCollectionSerializer(serializers.ModelSerializer):
+    recipes = BaseRecipeSerializer(many=True, read_only=True)
+    image = serializers.ImageField(required=False, allow_null=True)
+
     class Meta:
         model = RecipesCollection
-        fields = ['id', 'created_by', 'recipes', 'image', 'is_private', 'created_at']
+        fields = ['id', 'name', 'created_by', 'recipes', 'image', 'is_private', 'created_at']
         read_only_fields = ['id', 'created_at', 'created_by']
 
 
-class RecipesCollectionSerializer(BaseRecipesCollectionSerializer):
-    recipes = BaseRecipeSerializer(many=True, read_only=True)
-
-
-class RecipesCollectionCreateSerializer(BaseRecipesCollectionSerializer):
+class SimpleRecipesCollectionSerializer(BaseRecipesCollectionSerializer):
     recipes = serializers.PrimaryKeyRelatedField(queryset=Recipe.objects.all(), many=True)
 
 
-class RecipesCollectionDetailSerializer(BaseRecipesCollectionSerializer):
+class RecipesCollectionCreateSerializer(SimpleRecipesCollectionSerializer):
+    recipes = serializers.PrimaryKeyRelatedField(queryset=Recipe.objects.all(), many=True, required=False)
+
+
+class RecipesCollectionDetailSerializer(SimpleRecipesCollectionSerializer):
+    recipes = SimpleRecipeSerializer(many=True)
+
+
+class RecipesCollectionModifySerializer(SimpleRecipesCollectionSerializer):
     ...
 
 

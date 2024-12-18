@@ -1,5 +1,7 @@
+from decimal import Decimal, ROUND_HALF_UP
+
 from django.contrib.auth import get_user_model
-from django.core.validators import MinLengthValidator, MinValueValidator
+from django.core.validators import MinLengthValidator, MinValueValidator, MaxValueValidator
 from django.db import models
 from django.utils.text import slugify
 from unidecode import unidecode
@@ -49,7 +51,7 @@ class Unit(models.Model):
 class Recipe(BasicRecipeInfo):
     products = models.ManyToManyField(Product, through='RecipeProduct', related_name='recipes', blank=True)
 
-    slug = models.SlugField(max_length=100, unique=True, editable=False)
+    slug = models.SlugField(max_length=100, editable=False)
     image = models.ImageField(upload_to='recipes-images/', null=True, blank=True,
                               default='common/default-recipe-image.png')
 
@@ -94,10 +96,10 @@ class Recipe(BasicRecipeInfo):
 
 class CustomUnit(models.Model):
     unit = models.ForeignKey(Unit, on_delete=models.CASCADE)
-    custom_convert_to_base_rate = models.DecimalField(max_digits=7,
-                                                      decimal_places=3,
-                                                      validators=[MinValueValidator(0.001,
-                                                                                    "Base rate must be at least 0.001.")])
+    custom_convert_to_base_rate = models.DecimalField(max_digits=6,
+                                                      decimal_places=2,
+                                                      validators=[MinValueValidator(0.01,
+                                                                                    "Base rate must be at least 0.01.")])
 
     def __str__(self):
         return f"{self.unit.name} ({self.custom_convert_to_base_rate})"
@@ -109,7 +111,8 @@ class RecipeProduct(RecipeNutrientsInfo):
 
     quantity = models.DecimalField(max_digits=6, decimal_places=2,
                                    validators=[MinValueValidator(0.01,
-                                                                 "Quantity must be at least 0.01.")])
+                                                                 "Quantity must be at least 0.01."),
+                                               MaxValueValidator(1000.01, "Quantity must be lower than 1000!")])
     unit = models.ForeignKey(Unit, related_name='recipe_products', on_delete=models.CASCADE)
     custom_unit = models.ForeignKey(CustomUnit, related_name='recipe_products_custom',
                                     blank=True, null=True,
@@ -121,16 +124,19 @@ class RecipeProduct(RecipeNutrientsInfo):
         return rate_to_return
 
     def save(self, *args, **kwargs):
-        quantity_converted_to_base = (self.get_unit_convert_to_base_rate() * self.quantity) / 100
+        def quantize_value(value):
+            return Decimal(value).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
 
-        self.calories = quantity_converted_to_base * self.product.calories
-        self.protein = quantity_converted_to_base * self.product.protein
-        self.carbohydrates = quantity_converted_to_base * self.product.carbohydrates
-        self.sugars = quantity_converted_to_base * self.product.sugars
-        self.fats = quantity_converted_to_base * self.product.fats
-        self.saturated_fats = quantity_converted_to_base * self.product.saturated_fats
-        self.salt = quantity_converted_to_base * self.product.salt
-        self.fibre = quantity_converted_to_base * self.product.fibre
+        quantity_converted_to_base = quantize_value((self.get_unit_convert_to_base_rate() * self.quantity) / 100)
+
+        self.calories = quantize_value(quantity_converted_to_base * self.product.calories)
+        self.protein = quantize_value(quantity_converted_to_base * self.product.protein)
+        self.carbohydrates = quantize_value(quantity_converted_to_base * self.product.carbohydrates)
+        self.sugars = quantize_value(quantity_converted_to_base * self.product.sugars)
+        self.fats = quantize_value(quantity_converted_to_base * self.product.fats)
+        self.saturated_fats = quantize_value(quantity_converted_to_base * self.product.saturated_fats)
+        self.salt = quantize_value(quantity_converted_to_base * self.product.salt)
+        self.fibre = quantize_value(quantity_converted_to_base * self.product.fibre)
 
         super().save(*args, **kwargs)
 
