@@ -1,6 +1,7 @@
 import styles from './RecipeCard.module.css';
 import defaultRecipeImage from "../../assets/images/default-recipe-image.png";
 
+
 export default function RecipeCard(recipeDetails) {
     const totalTime = recipeDetails.time_to_prepare + recipeDetails.time_to_cook;
     const totalCalories = recipeDetails.total_nutrients.calories;

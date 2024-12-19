@@ -1,4 +1,14 @@
-import {Box, Button, FormControl, InputLabel, MenuItem, Select, TextField, Typography} from "@mui/material";
+import {
+    Box,
+    Button,
+    CircularProgress,
+    FormControl,
+    InputLabel,
+    MenuItem,
+    Select,
+    TextField,
+    Typography
+} from "@mui/material";
 import API_ENDPOINTS from "../../apiConfig.js";
 import {useEffect, useState} from "react";
 import {useError} from "../../context/errorProvider/ErrorProvider.jsx";
@@ -13,32 +23,22 @@ export default function ConfigureProduct({
     const {setError} = useError();
     const [quantityValue, setQuantityValue] = useState(currentProduct ? currentProduct.quantity : "");
     const [unitValue, setUnitValue] = useState(currentProduct ? currentProduct.unit : "");
-
     const [currentProductErrors, setCurrentProductErrors] = useState({product: "", unit: "", quantity: ""});
     const [createCustomUnit, setCreateCustomUnit] = useState(() => {
-        return currentProduct?.custom_unit || {
-            unit: null,
-            custom_convert_to_base_rate: 0,
-            id: null,
-        };
+        return currentProduct.custom_unit || null;
     });
+
+    const [createCustomUnitLoading, setCreateCustomUnitLoading] = useState(false);
+    const [createCustomUnitBaseRate, setCreateCustomUnitRate] = useState("");
     const [createCustomUnitErrors,
         setCreateCustomUnitErrors] = useState({unit: "", custom_convert_to_base_rate: ""});
     const [createCustomUnitState, setCreateCustomUnitState] = useState(false);
 
-    const handleCreateCustomUnitFormValues = (targetName, targetValue) => {
-        setCreateCustomUnit(oldValues => ({...oldValues, [targetName]: targetValue}));
-    };
 
     const handleCreateCustomUnitState = () => {
         setCreateCustomUnitState((prevState) => {
             const newState = !prevState;
-            if (newState) {
-                setIsDisabled(true);
-                handleCreateCustomUnitFormValues("unit", unitValue.id);
-            } else {
-                setIsDisabled(false);
-            }
+            setIsDisabled(newState)
             return newState;
         });
     };
@@ -47,11 +47,17 @@ export default function ConfigureProduct({
         e.preventDefault();
         e.stopPropagation();
 
+        setCreateCustomUnitLoading(true);
+        const customUnitBody = {
+            unit: unitValue.id,
+            custom_convert_to_base_rate: createCustomUnitBaseRate,
+        };
+
         const handleSubmit = async () => {
             try {
                 const response = await fetch(API_ENDPOINTS.customUnits, {
                     method: "POST",
-                    body: JSON.stringify(createCustomUnit),
+                    body: JSON.stringify(customUnitBody),
                     credentials: "include",
                     headers: {
                         'Content-Type': 'application/json',
@@ -60,19 +66,19 @@ export default function ConfigureProduct({
 
                 if (response.ok) {
                     const data = await response.json();
-                    handleCreateCustomUnitFormValues("id", data.id);
                     setIsDisabled(false);
                     setCreateCustomUnitState(false);
 
-                    // Could be improved, the best choice for now
-                    const updatedCustomUnit = { ...createCustomUnit, id: data.id };
-                    handleCurrentProduct("custom_unit", updatedCustomUnit);
+                    const updatedCustomUnit = { ...customUnitBody, id: data.id };
+                    setCreateCustomUnit(updatedCustomUnit);
                 } else {
                     const data = await response.json();
                     setCreateCustomUnitErrors(data);
                 }
             } catch (error) {
                 setError(error.message);
+            } finally {
+                setCreateCustomUnitLoading(false);
             }
         };
 
@@ -89,7 +95,7 @@ export default function ConfigureProduct({
     }, []);
 
     const resetCustomUnit = () => {
-        setCreateCustomUnit({unit: null, custom_convert_to_base_rate: 0, id: null});
+        setCreateCustomUnit(null);
         handleCurrentProduct("custom_unit", null);
     };
 
@@ -118,7 +124,7 @@ export default function ConfigureProduct({
 
         if (isInvalid) return
 
-        onSubmitMethod(quantityValue, unitValue);
+        onSubmitMethod(quantityValue, unitValue, createCustomUnit);
     };
 
     const handleQuantityValue = (e) => {
@@ -129,6 +135,7 @@ export default function ConfigureProduct({
     const handleUnitValue = (e) => {
         handleCurrentProductErrors(e.target.name, "");
         setUnitValue(e.target.value);
+        setCreateCustomUnit(null);
     };
 
     return (<Box
@@ -214,7 +221,7 @@ export default function ConfigureProduct({
         >
             {unitValue && unitValue.is_customizable &&
                 <>
-                    {currentProduct.custom_unit ? <>
+                    {createCustomUnit ? <>
                         <Typography variant="body1">
                             <span style={{fontWeight: 'bold'}}>{unitValue.name}</span> are {' '}
                             <span
@@ -257,7 +264,7 @@ export default function ConfigureProduct({
                                     variant="outlined"
                                     type="text"
                                     onChange={(e) => {
-                                        handleCreateCustomUnitFormValues(e.target.name, e.target.value)
+                                        setCreateCustomUnitRate(e.target.value)
                                     }}
                                     required
                                     name="custom_convert_to_base_rate"
@@ -270,7 +277,7 @@ export default function ConfigureProduct({
                                     sx={{padding: 1}}
                                     onClick={handleCreateCustomUnitSubmit}
                                 >
-                                    Create custom unit
+                                    {createCustomUnitLoading ? <CircularProgress size={24} /> : "Create custom unit"}
                                 </Button>
                             </Box>
                         }

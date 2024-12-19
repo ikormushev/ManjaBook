@@ -17,6 +17,7 @@ export default function ProductAdd({units, onSendData, handleModalMode, showProd
     const {setError} = useError();
     const [activeTab, setActiveTab] = useState(0);
     const [products, setProducts] = useState([]);
+    const [searchedProducts, setSearchedProducts] = useState(null);
     const [currentProduct, setCurrentProduct] = useState({
         product: null,
         unit: null,
@@ -74,13 +75,13 @@ export default function ProductAdd({units, onSendData, handleModalMode, showProd
         fetchProducts();
     }, []);
 
-    const handleAddCurrentProduct = (quantity, unitValue) => {
+    const handleAddCurrentProduct = (quantity, unitValue, customUnitValue) => {
         if (currentProduct.product && unitValue && quantity > 0) {
             const data = {
                 product: currentProduct.product,
                 unit: unitValue,
                 quantity: quantity,
-                custom_unit: currentProduct.custom_unit,
+                custom_unit: customUnitValue,
             };
 
             onSendData(data);
@@ -115,7 +116,7 @@ export default function ProductAdd({units, onSendData, handleModalMode, showProd
 
             if (response.ok) {
                 const data = await response.json();
-                setProducts(data);
+                setSearchedProducts(data);
             }
         } catch (e) {
             setError(e.message);
@@ -167,7 +168,26 @@ export default function ProductAdd({units, onSendData, handleModalMode, showProd
             quantity: "",
             custom_unit: null,
         });
+        setSearchedProducts(null);
         handleModalMode();
+    };
+
+    const showProduct = (product) => {
+        return (<ProductCard product={product} key={`${product.id}-${product.name}`}>
+            <Button
+                type="submit"
+                variant="contained"
+                color="primary"
+                onClick={() => {
+                    handleCurrentProductFormValues("product", product)
+                    handleTabChange(null, 1);
+                }}
+                sx={{padding: 0.5}}
+                disabled={isDisabled}
+            >
+                Select
+            </Button>
+        </ProductCard>);
     };
 
     return (
@@ -181,6 +201,18 @@ export default function ProductAdd({units, onSendData, handleModalMode, showProd
                         <div className={styles.searchContainer}>
                             <SearchBar onSearch={handleSearchSubmit}/>
 
+                            {searchedProducts &&
+                                <Button
+                                    variant="contained"
+                                    color="#DFDFDF"
+                                    onClick={() => {
+                                        setSearchedProducts(null)
+                                    }}
+                                    sx={{padding: 1}}
+                                    disabled={isDisabled}
+                                >
+                                    Remove search
+                                </Button>}
                             <div className={styles.productCreateContainer}>
                                 <span>Product not found?</span>
                                 <Button
@@ -199,23 +231,9 @@ export default function ProductAdd({units, onSendData, handleModalMode, showProd
                         </div>
 
                         <div className={styles.allProductsContainer}>
-                            {products.map((product) => (
-                                <ProductCard product={product} key={`${product.id}-${product.name}`}>
-                                    <Button
-                                        type="submit"
-                                        variant="contained"
-                                        color="primary"
-                                        onClick={() => {
-                                            handleCurrentProductFormValues("product", product)
-                                            handleTabChange(null, 1);
-                                        }}
-                                        sx={{padding: 0.5}}
-                                        disabled={isDisabled}
-                                    >
-                                        Select
-                                    </Button>
-                                </ProductCard>
-                            ))}
+                            {searchedProducts ?
+                                searchedProducts.map((product) => showProduct(product)) :
+                                products.map((product) => showProduct(product))}
                         </div>
                     </div>
                     : <div className={styles.createProductContainer}>

@@ -24,9 +24,9 @@ export default function ProductDetail({productInfo, units, onDeleteProduct, onEd
         onDeleteProduct(currentProduct);
     };
 
-    const handleEdit = (quantityValue, unitValue) => {
+    const handleEdit = (quantityValue, unitValue, customUnitValue) => {
         if (currentProduct.product && unitValue && quantityValue > 0) {
-            onEditProduct(currentProduct, quantityValue, unitValue);
+            onEditProduct(currentProduct, quantityValue, unitValue, customUnitValue);
             handleModalMode();
         }
     };

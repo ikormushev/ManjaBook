@@ -104,7 +104,7 @@ export default function RecipeCreator({recipeData = null}) {
                 formData.append('preparation', formValues.preparation);
                 formData.append('portions', formValues.portions);
                 formData.append('time_to_prepare', formValues.time_to_prepare);
-                formData.append('time_to_cook', formValues.time_to_prepare);
+                formData.append('time_to_cook', formValues.time_to_cook);
 
                 formData.append('products', JSON.stringify(selectedProducts.map((itemInfo) => {
                     return {
@@ -212,10 +212,18 @@ export default function RecipeCreator({recipeData = null}) {
                 return [...oldValues, data];
             }
 
-            if (data.custom_unit && oldValues[existingIndex].custom_unit) {
+            let canAddTogether = false;
+            if (data.custom_unit && oldValues[existingIndex].custom_unit && data.custom_unit.custom_convert_to_base_rate === data.custom_unit.custom_convert_to_base_rate) {
+                canAddTogether = true;
+            } else if (!data.custom_unit && !oldValues[existingIndex].custom_unit) {
+                canAddTogether = true;
+            }
+
+            if (!canAddTogether) {
                 setError("Cannot set custom unit to a product with an existing custom unit!");
                 return oldValues
             }
+
             const updatedProducts = [...oldValues];
             updatedProducts[existingIndex] = {
                 ...updatedProducts[existingIndex],
@@ -238,21 +246,41 @@ export default function RecipeCreator({recipeData = null}) {
         setSuccess("Product successfully deleted!");
     };
 
-    const handleEditProduct = (data, quantityValue, unitValue) => {
-        const existingIndex = selectedProducts.findIndex(
-            (itemInfo) =>
-                itemInfo.product.id === data.product.id &&
-                itemInfo.unit.id === data.unit.id
-        );
-        if (existingIndex !== -1) {
-            setError("Cannot edit to a product with a unit that already exists!");
-        } else {
-            setSelectedProducts(oldValues => oldValues.map((itemInfo) =>
-                itemInfo.uniqueKey !== data.uniqueKey ? itemInfo : {...data, quantity: quantityValue, unit: unitValue}
+    const handleEditProduct = (data, quantityValue, unitValue, customUnitValue) => {
+        const productExists = selectedProducts.filter((itemInfo) =>
+            itemInfo.product.id === data.product.id && itemInfo.unit.id === unitValue.id)[0];
+
+        if (typeof productExists !== 'undefined' && productExists.uniqueKey !== data.uniqueKey) {
+            let canAddTogether = false;
+
+            if (customUnitValue && productExists.custom_unit && customUnitValue.id === productExists.custom_unit.id) {
+                canAddTogether = true;
+            } else if (!customUnitValue && !productExists.custom_unit) {
+                canAddTogether = true;
+            }
+
+            if (!canAddTogether) {
+                setError("Invalid edit!");
+                return
+            }
+
+            productExists.quantity += Number(quantityValue);
+            setSelectedProducts(oldValues => oldValues
+                .filter((itemInfo) => itemInfo.uniqueKey === productExists.uniqueKey
             ));
-            setFormErrors(prev => ({ ...prev, products: "" }));
-            setSuccess("Product successfully edited!");
+            return
         }
+
+        setSelectedProducts(oldValues => oldValues.map((itemInfo) =>
+            itemInfo.uniqueKey !== data.uniqueKey ? itemInfo :
+                {...data,
+                quantity: quantityValue,
+                unit: unitValue,
+                custom_unit: customUnitValue
+                }
+        ));
+        setFormErrors(prev => ({ ...prev, products: "" }));
+        setSuccess("Product successfully edited!");
     };
 
     const handleModalMode = () => {

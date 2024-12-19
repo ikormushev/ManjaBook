@@ -37,6 +37,7 @@
     display: flex;
     gap: 1em;
     justify-content: space-between;
+    align-items: center;
 }
 
 .createProductContainer {

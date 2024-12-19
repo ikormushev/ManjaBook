@@ -117,6 +117,26 @@ export default function RecipeDetail() {
                             {recipe.image ?
                                 <img src={recipe.image} alt="recipe_image"/> :
                                 <img src={defaultRecipeImage} alt="default_recipe_image"/>}
+                            <div className={styles.recipeMenuButtons}>
+                                {isAuthenticated &&
+                                    <>
+                                        <IconButton onClick={handleModalMode}>
+                                            <img src={addButtonIcon} alt="addButtonIcon"/>
+                                        </IconButton>
+                                        <CustomModal isOpen={showCollectionModal} onClose={handleModalMode}>
+                                            <RecipeAddToCollection recipe={recipe}/>
+                                        </CustomModal>
+                                    </>
+                                }
+                            </div>
+                            {recipe.is_owner && <div className={styles.recipeOwnerButtons}>
+                                <IconButton onClick={handleEditButton}>
+                                    <img src={editButtonIcon} alt="editButtonIcon"/>
+                                </IconButton>
+                                <IconButton onClick={handleDeleteButton}>
+                                    <img src={deleteButtonIcon} alt="deleteButtonIcon"/>
+                                </IconButton>
+                            </div>}
                             <div className={styles.recipeQuickDescription}>
                                 <p>"{recipe.quick_description}"</p>
                             </div>
@@ -135,27 +155,6 @@ export default function RecipeDetail() {
                                 <p>🔥 {recipe.total_nutrients.calories} cals</p>
                             </div>
                         </div>
-                        <div className={styles.recipeMenuButtons}>
-                            {isAuthenticated &&
-                                <>
-                                    <IconButton onClick={handleModalMode}>
-                                        <img src={addButtonIcon} alt="addButtonIcon"/>
-                                    </IconButton>
-                                    <CustomModal isOpen={showCollectionModal} onClose={handleModalMode}>
-                                        <RecipeAddToCollection recipe={recipe}/>
-                                    </CustomModal>
-                                </>
-                            }
-
-                        </div>
-                        {recipe.is_owner && <div className={styles.recipeOwnerButtons}>
-                            <IconButton onClick={handleEditButton}>
-                                <img src={editButtonIcon} alt="editButtonIcon"/>
-                            </IconButton>
-                            <IconButton onClick={handleDeleteButton}>
-                                <img src={deleteButtonIcon} alt="deleteButtonIcon"/>
-                            </IconButton>
-                        </div>}
                     </div>
                 </div>
                 <div className={styles.recipeBodyContainer}>
