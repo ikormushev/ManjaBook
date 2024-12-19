@@ -7,8 +7,7 @@ export default function RecipeCard(recipeDetails) {
     const totalCalories = recipeDetails.total_nutrients.calories;
     const creatorInfo = recipeDetails.created_by;
 
-    return (<li key={recipeDetails.id}>
-            <div className={styles.recipeDetail}>
+    return (<div className={styles.recipeDetail}>
                 <div className={styles.recipeDetailHeader}>
                     {recipeDetails.image ?
                         <img src={recipeDetails.image} alt="recipe_image"/> :
@@ -25,13 +24,12 @@ export default function RecipeCard(recipeDetails) {
                     </div>
                 </div>
 
-                {creatorInfo ? <div className={styles.recipeDetailCreator}>
+                {creatorInfo && <div className={styles.recipeDetailCreator}>
                     <div className={styles.profilePicture}>
                         <img src={creatorInfo.profile_picture} alt="recipeDetails.image"/>
                     </div>
                     <p>{creatorInfo.username}</p>
-                </div> : null}
+                </div>}
             </div>
-        </li>
     );
 };

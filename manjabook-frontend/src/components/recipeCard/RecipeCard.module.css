@@ -2,48 +2,42 @@
     border-radius: 1.5em;
     box-shadow: 0 0 1em 0 rgb(0, 0, 0, 0.5);
     padding: 1em;
+
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0.5em;
+    gap: 1em;
+    width: 15em;
 }
 
 .recipeDetailHeader {
-    width: 200px;
-    height: auto;
-}
-
-.recipeDetailHeader img {
-    width: 100%;
-    height: auto;
+    width: 12em;
 }
 
 .recipeDetailTitle {
     text-align: center;
+    word-wrap: break-word;
+    white-space: normal;
+    overflow: hidden;
 }
 
 .recipeDetailBody {
     display: flex;
     flex-direction: column;
-    gap: 0.5em
+    gap: 0.5em;
 }
+
 .recipeDetailInfo {
     display: flex;
     gap: 1em;
-    padding-bottom: 1em;
 }
 
 .recipeDetailCreator {
     display: flex;
     gap: 1em;
+    align-items: center;
 }
 
 .recipeDetailCreator .profilePicture {
-    width: 50px;
-    height: 50px;
-}
-
-.recipeDetailCreator .profilePicture img {
-    width: 100%;
-    height: auto;
+    width: 4em;
 }

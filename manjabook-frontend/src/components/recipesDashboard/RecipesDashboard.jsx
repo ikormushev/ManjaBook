@@ -1,12 +1,11 @@
 import {useEffect, useState} from "react";
 import RecipeCard from "../recipeCard/RecipeCard.jsx";
-import styles from './RecipesDashboard.module.css';
 import {Link} from "react-router-dom";
 import Loading from "../../utils/loading/Loading.jsx";
 import API_ENDPOINTS from "../../apiConfig.js";
 import {useError} from "../../context/errorProvider/ErrorProvider.jsx";
 import SearchBar from "../../utils/searchBar/SearchBar.jsx";
-import {Typography} from "@mui/material";
+import {Box, Typography} from "@mui/material";
 
 export default function RecipesDashboard() {
     const {setError} = useError();
@@ -55,7 +54,7 @@ export default function RecipesDashboard() {
     const showRecipe = (recipe) => {
       return (<Link
           to={`${recipe.id}/${recipe.slug}`}
-          key={recipe.id}
+          key={`${recipe.id}-${recipe.name}`}
           style={{textDecoration: 'none', color: 'inherit'}}
       >
           {RecipeCard(recipe)}
@@ -63,7 +62,9 @@ export default function RecipesDashboard() {
     };
 
     return (
-        <div className={styles.recipesContainer}>
+        <Box sx={{
+            padding: 3
+        }}>
             <Typography variant="h4" gutterBottom
                         sx={{
                             color: '#ab47bc',
@@ -75,12 +76,19 @@ export default function RecipesDashboard() {
                 Recipes
             </Typography>
             <SearchBar onSearch={handleSearch} removeSearch={() => setSearchedRecipes(null)} />
-
-            <ul className={styles.recipeDashboard}>
+            <Box
+                sx={{
+                    padding: '1em 0',
+                    display: 'flex',
+                    justifyContent: 'space-around',
+                    flexWrap: 'wrap',
+                    gap: 3,
+                }}
+            >
                 {searchedRecipes ?
                     searchedRecipes.map((recipe) => showRecipe(recipe)) :
                     recipes.map((recipe) => showRecipe(recipe))}
-            </ul>
-        </div>
+            </Box>
+        </Box>
     );
 };
