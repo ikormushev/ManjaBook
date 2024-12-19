@@ -7,7 +7,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 
 from ManjaBook.accounts.models import Profile
 from ManjaBook.accounts.serializers import UserCreateSerializer, ProfileSerializer, CustomTokenObtainPairSerializer, \
-    BaseProfileSerializer
+    BaseProfileSerializer, ProfileUpdateSerializer
 
 UserModel = get_user_model()
 
@@ -65,8 +65,11 @@ class ProfileListView(api_views.ListAPIView):
         return queryset
 
 
-class UserProfileView(api_views.RetrieveAPIView):
-    serializer_class = ProfileSerializer
+class UserProfileView(api_views.RetrieveUpdateAPIView):
+    modify_serializer_class = ProfileUpdateSerializer
+    detail_serializer_class = ProfileSerializer
+
+    serializer_class = detail_serializer_class
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
     def get_queryset(self):
@@ -78,6 +81,11 @@ class UserProfileView(api_views.RetrieveAPIView):
         context = super().get_serializer_context()
         context['request'] = self.request
         return context
+
+    def get_serializer_class(self):
+        if self.request.method == 'GET':
+            return self.serializer_class
+        return self.modify_serializer_class
 
 
 class CheckAuthenticationView(base_api_views.APIView):
