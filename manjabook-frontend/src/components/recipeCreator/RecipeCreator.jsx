@@ -114,6 +114,7 @@ export default function RecipeCreator({recipeData = null}) {
                         custom_unit_id: itemInfo.custom_unit?.id || null
                     };
                 })));
+
                 if (formValues.image) {
                     formData.append('image', formValues.image);
                 }
@@ -264,7 +265,7 @@ export default function RecipeCreator({recipeData = null}) {
                 return
             }
 
-            productExists.quantity += Number(quantityValue);
+            productExists.quantity = Number(productExists.quantity) + Number(quantityValue);
             setSelectedProducts(oldValues => oldValues
                 .filter((itemInfo) => itemInfo.uniqueKey === productExists.uniqueKey
             ));
@@ -291,7 +292,6 @@ export default function RecipeCreator({recipeData = null}) {
         <>
             <Box
                 component="form"
-                encType="multipart/form-data"
                 sx={{
                     display: 'flex',
                     gap: 2,
@@ -475,7 +475,7 @@ export default function RecipeCreator({recipeData = null}) {
                             }}
                             disabled={loadingFormValues}
                         >
-                            {loadingFormValues ? <CircularProgress size={24}/> : "Submit Recipe"}
+                            {loadingFormValues ? <CircularProgress size={24}/> : recipeData ? "Edit Recipe" : "Submit Recipe"}
                         </Button>
                     </div>
                 </div>

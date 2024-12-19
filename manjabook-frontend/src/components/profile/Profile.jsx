@@ -1,4 +1,4 @@
-import {Link, useParams} from "react-router-dom";
+import {Link, useNavigate, useParams} from "react-router-dom";
 import {useEffect, useState} from "react";
 import PageNotFound from "../pageNotFound/PageNotFound.jsx";
 import styles from "./Profile.module.css";
@@ -9,31 +9,57 @@ import {
     Drawer,
     Typography,
     Button,
-    Divider
+    Divider,
+    IconButton,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogContentText,
+    DialogActions,
+    TextField,
+    CircularProgress, InputLabel
 } from '@mui/material';
 import defaultUserPicture from "../../assets/images/default-user-picture.png";
 import defaultRecipeImage from "../../assets/images/default-recipe-image.png";
 import Loading from "../../utils/loading/Loading.jsx";
 import API_ENDPOINTS from "../../apiConfig.js";
 import {useError} from "../../context/errorProvider/ErrorProvider.jsx";
+import editButtonIcon from "../../assets/images/edit-button-icon.png";
+import deleteButtonIcon from "../../assets/images/delete-button-icon.png";
+import CustomModal from "../../utils/modal/CustomModal.jsx";
 
 
 export default function Profile() {
-    const { setError } = useError();
+    const {setError} = useError();
     const {userID} = useParams();
-
+    const navigate = useNavigate();
 
     const [profile, setProfile] = useState({
         user_id: '',
         username: '',
         profile_picture: '',
         owned_collections: [],
-        recipes: []
+        recipes: [],
+        is_owner: false,
     });
-    const [loading, setLoading] = useState(true);
+    const [profileLoading, setProfileLoading] = useState(true);
     const [activeTab, setActiveTab] = useState(0);
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [selectedCollection, setSelectedCollection] = useState(null);
+
+    const [showEditModal, setShowEditModal] = useState(false);
+    const [profileEditValues, setProfileEditValues] = useState({
+        username: "",
+        profile_picture: null,
+    });
+    const [profileEditErrors, setProfileEditErrors] = useState({
+        username: "",
+        profile_picture: "",
+    });
+    const [profileEditLoading, setProfileEditLoading] = useState(false);
+
+    const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+
     const handleDrawerOpen = (collection) => {
         setSelectedCollection(collection);
         setDrawerOpen(true);
@@ -54,25 +80,112 @@ export default function Profile() {
                 if (profileResponse.ok) {
                     const data = await profileResponse.json();
                     setProfile(data);
+                    setProfileEditValues(oldValues => ({...oldValues, username: data.username}));
                 } else {
                     setProfile(null);
                 }
             } catch (e) {
                 setError(e.message);
             } finally {
-                setLoading(false);
+                setProfileLoading(false);
             }
         };
 
         fetchProfile();
-    }, []);
+    }, [userID]);
 
-    if (loading) return <Loading/>;
+    if (profileLoading) return <Loading/>;
     if (!profile) return <PageNotFound/>;
 
     const handleTabChange = (event, newValue) => {
         setActiveTab(newValue);
     };
+
+    const handleClose = () => {
+        setShowDeleteDialog(false);
+    };
+
+    const handleConfirmEdit = (e) => {
+        setProfileEditLoading(true);
+
+        const handleSubmit = async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+
+            try {
+                let requestBody;
+                let requestHeaders = {};
+                if (profileEditValues.profile_picture) {
+                    const formData = new FormData();
+                    formData.append('username', profileEditValues.username);
+                    formData.append('profile_picture', profileEditValues.profile_picture);
+                    requestBody = formData;
+                } else {
+                    requestBody = JSON.stringify(profileEditValues);
+                    requestHeaders = {'Content-Type': 'application/json',};
+                }
+
+                const makeRequest = async (url, method, body, headers = {}) => {
+                    return await fetch(url, {
+                        method,
+                        body,
+                        headers,
+                        credentials: "include",
+                    });
+                };
+
+                const response = await makeRequest(
+                    `${API_ENDPOINTS.profiles}${userID}/`,
+                    "PUT",
+                    requestBody,
+                    requestHeaders
+                );
+                const data = await response.json();
+
+                if (response.ok) {
+                    setProfileEditValues({profile_picture: null, username: data.username});
+                    setProfile(oldValues => ({...oldValues, ...data}));
+                    setShowEditModal(false);
+                } else {
+                    if (response.status === 403) {
+                        setError("Login required!");
+                        navigate("/login");
+                        return
+                    }
+                    console.log(data);
+                    setProfileEditErrors(oldValues => ({...oldValues, ...data}));
+                }
+            } catch (error) {
+                setError(error.message);
+            } finally {
+                setProfileEditLoading(false);
+            }
+        };
+
+        handleSubmit(e);
+    };
+
+    const handleConfirmDelete = () => {
+        handleClose();
+        // handleDeleteConfirm();
+    };
+
+    const handleEditModalClose = () => {
+        changeHandler("username", profile.username);
+        changeHandler("profile_picture", null);
+
+        setShowEditModal(false);
+    };
+
+    const changeHandler = (targetName, targetValue) => {
+        setProfileEditErrors(oldValues => ({
+            ...oldValues,
+            [targetName]: "",
+        }));
+
+        setProfileEditValues(oldValues => ({...oldValues, [targetName]: targetValue}));
+    };
+
     return (
         <div className={styles.profileContainer}>
             <div className={styles.profile}>
@@ -84,13 +197,131 @@ export default function Profile() {
                             <img src={profile.profile_picture} alt="profile_picture"/> :
                             <img src={defaultUserPicture} alt="profile_picture"/>}
                     </div>
-
                     <div className={styles.profileInfo}>
                         <h2>@{profile.username}</h2>
                     </div>
+                    {profile.is_owner && <>
+                        <Box sx={{
+                            display: "flex",
+                            gap: 0.5,
+                            alignSelf: "flex-start",
+                            "& button": {
+                                width: "2.5em",
+                            },
+                        }}>
+                            <IconButton onClick={() => {setShowEditModal(true)}}>
+                                <img src={editButtonIcon} alt="editButtonIcon"/>
+                            </IconButton>
+                            <IconButton onClick={() => setShowDeleteDialog(true)}>
+                                <img src={deleteButtonIcon} alt="deleteButtonIcon"/>
+                            </IconButton>
+                        </Box>
+
+                        <Dialog
+                            open={showDeleteDialog}
+                            onClose={handleClose}
+                        >
+                            <DialogTitle>
+                                {"Delete profile"}
+                            </DialogTitle>
+                            <DialogContent>
+                                <DialogContentText>
+                                    Are you sure you want to delete your profile? This action cannot be undone.
+                                </DialogContentText>
+                            </DialogContent>
+                            <DialogActions>
+                                <Button onClick={handleConfirmDelete} color="error">
+                                    Yes
+                                </Button>
+                                <Button onClick={handleClose} color="primary">
+                                    No
+                                </Button>
+                            </DialogActions>
+                        </Dialog>
+
+                        <CustomModal isOpen={showEditModal} onClose={handleEditModalClose}>
+                            <Box
+                                sx={{
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    gap: 3
+                                }}
+                                component="form"
+                                onSubmit={handleConfirmEdit}
+                            >
+                                <Box
+                                    sx={{
+                                        display: "flex",
+                                        gap: 1,
+                                        flexDirection: "column"
+                                    }}
+                                >
+
+                                    <InputLabel htmlFor="profile_picture">Upload Image</InputLabel>
+                                    <input
+                                        id="profile_picture"
+                                        name="profile_picture"
+                                        accept="image/*"
+                                        type="file"
+                                        onChange={(e) => changeHandler(e.target.name, e.target.files[0])}
+                                        disabled={profileEditLoading}
+                                    />
+
+                                    {profileEditValues.profile_picture &&
+                                        <Button
+                                            variant="contained"
+                                            color="primary"
+                                            sx={{
+                                                padding: 1,
+                                                '&:hover': {
+                                                    backgroundColor: '#45a049',
+                                                },
+                                            }}
+                                            onClick={() => changeHandler("profile_picture", null)}
+                                            disabled={profileEditLoading}
+                                        >
+                                            Remove Image
+                                        </Button>}
+                                </Box>
+                                {profileEditValues.profile_picture &&
+                                    <Typography variant="caption" color="success">
+                                        Image uploaded successfully! The image will be visualised after profile edit.
+                                    </Typography>
+                                }
+                                {profileEditErrors.profile_picture && <Typography variant="caption" color="error">
+                                    {profileEditErrors.profile_picture}
+                                </Typography>}
+                                <TextField
+                                    name="username"
+                                    type="text"
+                                    value={profileEditValues.username || ''}
+                                    onChange={(e) => changeHandler(e.target.name, e.target.value)}
+                                    fullWidth
+                                    error={!!profileEditErrors.username}
+                                    helperText={profileEditErrors.username || ''}
+                                    variant="outlined"
+                                    label="Username"
+                                    required
+                                    disabled={profileEditLoading}
+                                />
+
+                                <Button
+                                    type="submit"
+                                    variant="contained"
+                                    color="primary"
+                                    sx={{
+                                        padding: 1.5,
+                                    }}
+                                    disabled={profileEditLoading}
+                                >
+                                    {profileEditLoading ? <CircularProgress size={24}/> : "Edit Profile"}
+                                </Button>
+                            </Box>
+                        </CustomModal>
+                    </>}
                 </div>
 
-                <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+                <Box sx={{borderBottom: 1, borderColor: 'divider'}}>
                     <Tabs
                         value={activeTab}
                         onChange={handleTabChange}
@@ -98,12 +329,12 @@ export default function Profile() {
                         indicatorColor="primary"
                         centered
                     >
-                        <Tab label="Recipes" />
-                        <Tab label="Collections" />
+                        <Tab label="Recipes"/>
+                        <Tab label="Collections"/>
                     </Tabs>
                 </Box>
 
-                <div className={styles.profileBody}>
+                <div>
                     {activeTab === 0 &&
                         <div className={styles.profileTabContainer}>
                             {profile.recipes.map((recipe) =>
@@ -129,7 +360,8 @@ export default function Profile() {
                         <>
                             <div className={styles.profileTabContainer}>
                                 {profile.owned_collections.map((collection) =>
-                                    <div key={`collection-${collection.id}`} onClick={() => handleDrawerOpen(collection)}>
+                                    <div key={`collection-${collection.id}`}
+                                         onClick={() => handleDrawerOpen(collection)}>
                                         <div className={styles.postImage}>
                                             <img src={collection.image} alt="collectionImage"/>
                                             <div className={styles.hoverOverlay}>
@@ -181,7 +413,7 @@ export default function Profile() {
                                                 style={{
                                                     textDecoration: 'none',
                                                     color: 'inherit',
-                                            }}
+                                                }}
                                                 className={styles.post}
                                             >
                                                 <Typography
@@ -195,7 +427,7 @@ export default function Profile() {
                                                 >
                                                     {recipe.name}
                                                 </Typography>
-                                                <Divider />
+                                                <Divider/>
                                             </Link>
                                         ))}
                                     </Box>
