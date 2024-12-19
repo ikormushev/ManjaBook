@@ -27,12 +27,14 @@ import {useError} from "../../context/errorProvider/ErrorProvider.jsx";
 import editButtonIcon from "../../assets/images/edit-button-icon.png";
 import deleteButtonIcon from "../../assets/images/delete-button-icon.png";
 import CustomModal from "../../utils/modal/CustomModal.jsx";
+import {useSuccess} from "../../context/successProvider/SuccessProvider.jsx";
 
 
 export default function Profile() {
     const {setError} = useError();
     const {userID} = useParams();
     const navigate = useNavigate();
+    const {setSuccess} = useSuccess();
 
     const [profile, setProfile] = useState({
         user_id: '',
@@ -167,7 +169,29 @@ export default function Profile() {
 
     const handleConfirmDelete = () => {
         handleClose();
-        // handleDeleteConfirm();
+
+         const handleDeleteConfirm = async () => {
+             try {
+                 const response = await fetch(`${API_ENDPOINTS.profiles}${userID}/`, {
+                     method: "DELETE",
+                     credentials: "include",
+                 });
+
+                 if (response.ok) {
+                     navigate("/profiles");
+                     setSuccess("Profile successfully deleted!");
+                 } else {
+                     if (response.status === 403) {
+                         setError("Login required!");
+                         navigate("/login");
+                     }
+                 }
+             } catch (error) {
+                 setError(error.message);
+             }
+         };
+
+        handleDeleteConfirm();
     };
 
     const handleEditModalClose = () => {

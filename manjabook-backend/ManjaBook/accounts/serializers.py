@@ -37,10 +37,11 @@ class UserCreateSerializer(serializers.ModelSerializer):
 class BaseProfileSerializer(serializers.ModelSerializer):
     username = serializers.SerializerMethodField()
     user_id = serializers.SerializerMethodField(read_only=True)
+    is_active = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Profile
-        fields = ['user_id', 'username', 'profile_picture']
+        fields = ['user_id', 'username', 'profile_picture', 'is_active']
 
     def get_username(self, obj):
         return obj.user.username
@@ -48,6 +49,8 @@ class BaseProfileSerializer(serializers.ModelSerializer):
     def get_user_id(self, obj):
         return obj.user.id
 
+    def get_is_active(self, obj):
+        return obj.user.is_active
 
 class ProfileUpdateSerializer(serializers.ModelSerializer):
     username = serializers.CharField(source='user.username')

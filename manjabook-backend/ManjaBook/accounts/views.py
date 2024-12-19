@@ -1,5 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.conf import settings
+from django.db import transaction
 from rest_framework import generics as api_views, views as base_api_views, permissions, status
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -56,7 +57,7 @@ class ProfileListView(api_views.ListAPIView):
         return super().get_authenticators()
 
     def get_queryset(self):
-        queryset = Profile.objects.all()
+        queryset = Profile.objects.filter(user__is_active=True)
 
         search_term = self.request.query_params.get('search', None)
         if search_term:
@@ -65,7 +66,7 @@ class ProfileListView(api_views.ListAPIView):
         return queryset
 
 
-class UserProfileView(api_views.RetrieveUpdateAPIView):
+class UserProfileView(api_views.RetrieveUpdateDestroyAPIView):
     modify_serializer_class = ProfileUpdateSerializer
     detail_serializer_class = ProfileSerializer
 
@@ -73,7 +74,7 @@ class UserProfileView(api_views.RetrieveUpdateAPIView):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
     def get_queryset(self):
-        return (Profile.objects.all()
+        return (Profile.objects.filter(user__is_active=True)
                 .select_related('user')
                 .prefetch_related('owned_collections').prefetch_related('recipe_set'))
 
@@ -86,6 +87,13 @@ class UserProfileView(api_views.RetrieveUpdateAPIView):
         if self.request.method == 'GET':
             return self.serializer_class
         return self.modify_serializer_class
+
+    def delete(self, request, *args, **kwargs):
+        instance = self.get_object()
+        with transaction.atomic():
+            instance.user.is_active = False
+            instance.user.save()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class CheckAuthenticationView(base_api_views.APIView):

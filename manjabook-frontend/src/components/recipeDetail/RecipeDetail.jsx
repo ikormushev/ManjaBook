@@ -18,6 +18,11 @@ import CustomModal from "../../utils/modal/CustomModal.jsx";
 import RecipeAddToCollection from "../recipeAddToCollection/RecipeAddToCollection.jsx";
 import {useSuccess} from "../../context/successProvider/SuccessProvider.jsx";
 
+const anonymousUser = {
+    profile_picture: defaultUserPicture,
+    username: "AnonymousUser",
+};
+
 export default function RecipeDetail() {
     const {setError} = useError();
     const {setSuccess} = useSuccess();
@@ -88,6 +93,25 @@ export default function RecipeDetail() {
         fetchDelete();
     };
 
+    const userCard = (url, user) => {
+        return (
+            <>
+                <Link to={url}>
+                    <div className={styles.profilePicture}>
+                        <img src={user.profile_picture} alt="profile_picture"/>
+                    </div>
+                </Link>
+                <div className={styles.creatorInfo}>
+                    <div className={styles.creatorUsername}>
+                        <p>@{user.username}</p>
+                    </div>
+                    <div className={styles.recipeDate}>
+                        <p>📅 {`${date.day}/${date.month}/${date.year}`}</p>
+                    </div>
+                </div>
+            </>
+        );
+    };
     return (
         editRecipe ?
             <RecipeCreator recipeData={recipe}/> :
@@ -96,22 +120,9 @@ export default function RecipeDetail() {
                     <h2>{recipe.name}</h2>
                     <div className={styles.recipeImageContainer}>
                         <div className={styles.creator}>
-                            <Link to={`/profiles/${recipe.created_by.user_id}`}>
-                                <div className={styles.profilePicture}>
-                                    {recipe.created_by.profile_picture ?
-                                        <img src={recipe.created_by.profile_picture} alt="profile_picture"/> :
-                                        <img src={defaultUserPicture} alt="profile_picture"/>}
-
-                                </div>
-                            </Link>
-                            <div className={styles.creatorInfo}>
-                                <div className={styles.creatorUsername}>
-                                    <p>@{recipe.created_by.username}</p>
-                                </div>
-                                <div className={styles.recipeDate}>
-                                    <p>📅 {`${date.day}/${date.month}/${date.year}`}</p>
-                                </div>
-                            </div>
+                            {recipe.created_by && recipe.created_by.is_active ?
+                                userCard(`/profiles/${recipe.created_by.user_id}`, recipe.created_by) :
+                                userCard("/profiles", anonymousUser)}
                         </div>
                         <div className={styles.recipeImage}>
                             {recipe.image ?
