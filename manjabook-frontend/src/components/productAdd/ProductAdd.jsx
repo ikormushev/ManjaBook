@@ -199,20 +199,8 @@ export default function ProductAdd({units, onSendData, handleModalMode, showProd
                 {!createProductState ?
                     <div className={styles.productsContainer}>
                         <div className={styles.searchContainer}>
-                            <SearchBar onSearch={handleSearchSubmit}/>
+                            <SearchBar onSearch={handleSearchSubmit} removeSearch={() => setSearchedProducts(null)}/>
 
-                            {searchedProducts &&
-                                <Button
-                                    variant="contained"
-                                    color="#DFDFDF"
-                                    onClick={() => {
-                                        setSearchedProducts(null)
-                                    }}
-                                    sx={{padding: 1}}
-                                    disabled={isDisabled}
-                                >
-                                    Remove search
-                                </Button>}
                             <div className={styles.productCreateContainer}>
                                 <span>Product not found?</span>
                                 <Button

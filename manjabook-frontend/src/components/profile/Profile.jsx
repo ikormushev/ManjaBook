@@ -70,7 +70,6 @@ export default function Profile() {
     if (loading) return <Loading/>;
     if (!profile) return <PageNotFound/>;
 
-
     const handleTabChange = (event, newValue) => {
         setActiveTab(newValue);
     };

@@ -48,13 +48,21 @@ class LoginApiView(TokenObtainPairView):
 
 class ProfileListView(api_views.ListAPIView):
     serializer_class = BaseProfileSerializer
-    queryset = Profile.objects.all()
     permission_classes = [permissions.AllowAny]
 
     def get_authenticators(self):
         if self.request.method == 'GET':
             return []
         return super().get_authenticators()
+
+    def get_queryset(self):
+        queryset = Profile.objects.all()
+
+        search_term = self.request.query_params.get('search', None)
+        if search_term:
+            queryset = queryset.filter(user__username__icontains=search_term)
+
+        return queryset
 
 
 class UserProfileView(api_views.RetrieveAPIView):

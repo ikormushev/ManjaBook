@@ -15,6 +15,7 @@ import RecipeDetail from "./components/recipeDetail/RecipeDetail.jsx";
 import {useError} from "./context/errorProvider/ErrorProvider.jsx";
 import {useSuccess} from "./context/successProvider/SuccessProvider.jsx";
 import BaseNotification from "./utils/baseNotification/BaseNotification.jsx";
+import ProfilesDashboard from "./components/profilesDashboard/ProfilesDashboard.jsx";
 
 export default function App() {
     const { error, clearError } = useError();
@@ -30,7 +31,8 @@ export default function App() {
                         <Route path="/" element={<Home/>}/>
                         <Route path="/recipes" element={<RecipesDashboard/>}/>
                         <Route path="/recipes/:recipeID/:recipeSlug" element={<RecipeDetail/>}/>
-                        <Route path="/profile/:userID" element={<Profile/>}/>
+                        <Route path="/profiles" element={<ProfilesDashboard/>}/>
+                        <Route path="/profiles/:userID" element={<Profile/>}/>
 
                         <Route element={<ProtectedRoute/>}>
                             <Route path="/create-recipe" element={<RecipeCreator/>}/>

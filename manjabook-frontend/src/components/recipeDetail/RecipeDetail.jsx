@@ -96,7 +96,7 @@ export default function RecipeDetail() {
                     <h2>{recipe.name}</h2>
                     <div className={styles.recipeImageContainer}>
                         <div className={styles.creator}>
-                            <Link to={`/profile/${recipe.created_by.user_id}`}>
+                            <Link to={`/profiles/${recipe.created_by.user_id}`}>
                                 <div className={styles.profilePicture}>
                                     {recipe.created_by.profile_picture ?
                                         <img src={recipe.created_by.profile_picture} alt="profile_picture"/> :

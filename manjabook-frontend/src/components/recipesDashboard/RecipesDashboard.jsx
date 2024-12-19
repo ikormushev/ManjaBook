@@ -6,11 +6,13 @@ import Loading from "../../utils/loading/Loading.jsx";
 import API_ENDPOINTS from "../../apiConfig.js";
 import {useError} from "../../context/errorProvider/ErrorProvider.jsx";
 import SearchBar from "../../utils/searchBar/SearchBar.jsx";
+import {Typography} from "@mui/material";
 
 export default function RecipesDashboard() {
     const {setError} = useError();
     const [recipes, setRecipes] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [searchedRecipes, setSearchedRecipes] = useState(null);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -43,26 +45,41 @@ export default function RecipesDashboard() {
 
             if (response.ok) {
                 const data = await response.json();
-                setRecipes(data);
+                setSearchedRecipes(data);
             }
         } catch (e) {
             setError(e.message);
         }
     };
 
+    const showRecipe = (recipe) => {
+      return (<Link
+          to={`${recipe.id}/${recipe.slug}`}
+          key={recipe.id}
+          style={{textDecoration: 'none', color: 'inherit'}}
+      >
+          {RecipeCard(recipe)}
+      </Link>);
+    };
+
     return (
         <div className={styles.recipesContainer}>
-            <SearchBar onSearch={handleSearch} />
+            <Typography variant="h4" gutterBottom
+                        sx={{
+                            color: '#ab47bc',
+                            fontWeight: 'bold',
+                            textAlign: 'center',
+                            textTransform: 'uppercase',
+                            padding: 1
+                        }}>
+                Recipes
+            </Typography>
+            <SearchBar onSearch={handleSearch} removeSearch={() => setSearchedRecipes(null)} />
+
             <ul className={styles.recipeDashboard}>
-                {recipes.map((recipe) =>
-                    <Link
-                        to={`${recipe.id}/${recipe.slug}`}
-                        key={recipe.id}
-                        style={{textDecoration: 'none', color: 'inherit'}}
-                    >
-                        {RecipeCard(recipe)}
-                    </Link>
-                )}
+                {searchedRecipes ?
+                    searchedRecipes.map((recipe) => showRecipe(recipe)) :
+                    recipes.map((recipe) => showRecipe(recipe))}
             </ul>
         </div>
     );

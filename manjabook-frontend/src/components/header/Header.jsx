@@ -31,7 +31,7 @@ export default function Header() {
                 sx={{
                     display: "flex",
                     alignItems: "center",
-                    gap: 1.5,
+                    gap: 2,
                 }}
             >
                 <Button sx={{width: 4}}>
@@ -43,7 +43,8 @@ export default function Header() {
                 <Box
                     sx={{
                         display: "flex",
-                        gap: 1,
+                        fontSize: "1.4em",
+                        gap: 2.5,
                         "& a": {
                             color: "white",
                             "&:hover": {
@@ -54,6 +55,7 @@ export default function Header() {
                 >
                     <NavLink to="/" className={styles.link}>Home</NavLink>
                     <NavLink to="/recipes" className={styles.link}>Recipes</NavLink>
+                    <NavLink to="/profiles" className={styles.link}>Profiles</NavLink>
                 </Box>
             </Box>
 
@@ -84,7 +86,7 @@ export default function Header() {
                                         Create a Recipe
                                 </MenuItem>
                             </NavLink>
-                            <NavLink to={`/profile/${userID}`} className={styles.link}>
+                            <NavLink to={`/profiles/${userID}`} className={styles.link}>
                                 <MenuItem onClick={handleMenuClose}>
                                         Profile
                                 </MenuItem>
@@ -128,7 +130,7 @@ export default function Header() {
                             </Button>
 
                             <Button sx={{width: 2.5}}>
-                                <NavLink to={`/profile/${userID}`}>
+                                <NavLink to={`/profiles/${userID}`}>
                                     <img src={profilePhoto} alt="profilePhoto"/>
                                 </NavLink>
                             </Button>
