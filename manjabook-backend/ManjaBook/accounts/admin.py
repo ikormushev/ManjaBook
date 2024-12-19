@@ -12,7 +12,7 @@ class AccountUserAdmin(UserAdmin):
     list_filter = ('is_staff', 'is_superuser', 'is_active', 'date_joined')
     search_fields = ('email', 'username')
     ordering = ('date_joined',)
-
+    readonly_fields = ('last_login', 'date_joined')
     fieldsets = (
         (None, {'fields': ('email', 'username', 'password')}),
         (_('Permissions'), {

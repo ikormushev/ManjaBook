@@ -156,9 +156,16 @@ class RecipeListView(api_views.ListCreateAPIView):
                     .prefetch_related('recipe_products'))
 
         search_term = self.request.query_params.get('search', None)
-
         if search_term:
             queryset = queryset.filter(name__icontains=search_term)
+
+        limit = self.request.query_params.get('limit', None)
+        if limit:
+            try:
+                limit = int(limit)
+                queryset = queryset.order_by('-created_at')[:limit]
+            except ValueError:
+                pass
 
         return queryset
 
