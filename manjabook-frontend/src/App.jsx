@@ -44,9 +44,6 @@ export default function App() {
                     <Route element={<BlankLayout/>}>
                         <Route path="/register" element={<Register/>} exact/>
                         <Route path="/login" element={<Login/>} exact/>
-                        <Route element={<ProtectedRoute/>}>
-                            <Route path="/logout" element={<Logout/>} exact/>
-                        </Route>
                     </Route>
                 </Routes>
             </AuthProvider>

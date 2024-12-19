@@ -265,9 +265,10 @@ export default function RecipeCreator({recipeData = null}) {
                 return
             }
 
+
             productExists.quantity = Number(productExists.quantity) + Number(quantityValue);
             setSelectedProducts(oldValues => oldValues
-                .filter((itemInfo) => itemInfo.uniqueKey === productExists.uniqueKey
+                .filter((itemInfo) => itemInfo.uniqueKey !== data.uniqueKey
             ));
             return
         }
@@ -287,7 +288,7 @@ export default function RecipeCreator({recipeData = null}) {
     const handleModalMode = () => {
         setShowProductModal(!showProductModal);
     };
-
+    console.log(selectedProducts);
     return (
         <>
             <Box

@@ -93,7 +93,21 @@ class UserProfileView(api_views.RetrieveUpdateDestroyAPIView):
         with transaction.atomic():
             instance.user.is_active = False
             instance.user.save()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+
+        response = Response(status=status.HTTP_204_NO_CONTENT)
+
+        if request.user == instance.user:
+            refresh_token = request.COOKIES.get('refresh', None)
+
+            if refresh_token:
+                token = RefreshToken(refresh_token)
+                token.blacklist()
+            response = Response(status=status.HTTP_204_NO_CONTENT)
+            response.delete_cookie('token')
+            response.delete_cookie('refresh')
+            response.delete_cookie('user_id')
+
+        return response
 
 
 class CheckAuthenticationView(base_api_views.APIView):

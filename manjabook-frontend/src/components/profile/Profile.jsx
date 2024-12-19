@@ -28,11 +28,13 @@ import editButtonIcon from "../../assets/images/edit-button-icon.png";
 import deleteButtonIcon from "../../assets/images/delete-button-icon.png";
 import CustomModal from "../../utils/modal/CustomModal.jsx";
 import {useSuccess} from "../../context/successProvider/SuccessProvider.jsx";
+import {useAuth} from "../../context/authProvider/AuthProvider.jsx";
 
 
 export default function Profile() {
     const {setError} = useError();
     const {userID} = useParams();
+    const { authState, setAuthState } = useAuth();
     const navigate = useNavigate();
     const {setSuccess} = useSuccess();
 
@@ -178,8 +180,16 @@ export default function Profile() {
                  });
 
                  if (response.ok) {
-                     navigate("/profiles");
+                     navigate("/");
                      setSuccess("Profile successfully deleted!");
+
+                     if (authState.userID == profile.user_id) {
+                         setAuthState({
+                             isAuthenticated: false,
+                             username: "",
+                             userID: "",
+                         });
+                     }
                  } else {
                      if (response.status === 403) {
                          setError("Login required!");

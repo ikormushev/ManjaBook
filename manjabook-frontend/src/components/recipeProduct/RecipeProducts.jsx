@@ -20,6 +20,9 @@ export default function RecipeProducts({products}) {
                     onChange={handleAccordionChange(`${product.id}-${productInfo.unit.id}`)}
                     key={`${product.id}-${product.name}-${productInfo.unit.id}`}
                     disableGutters
+                    sx={{
+                        width: '20em',
+                    }}
                 >
                     <AccordionSummary>
                         <Typography>
