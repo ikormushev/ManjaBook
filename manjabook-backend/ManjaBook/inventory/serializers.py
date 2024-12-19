@@ -5,7 +5,7 @@ from rest_framework.exceptions import ValidationError
 
 from unidecode import unidecode
 
-from ManjaBook.accounts.permissions import is_allowed
+from ManjaBook.accounts.permissions import is_allowed_in_inventory
 from ManjaBook.accounts.serializers import BaseProfileSerializer
 from ManjaBook.inventory.choices import NutritionPerChoices
 from ManjaBook.inventory.models import Shop, Product, Unit, CustomUnit, RecipeProduct, Recipe, RecipesCollection, \
@@ -132,7 +132,7 @@ class RecipeDetailSerializer(SimpleRecipeSerializer):
         request = self.context.get('request', None)
 
         if request and request.user.is_authenticated:
-            return is_allowed(request.user, obj.created_by.user)
+            return is_allowed_in_inventory(request.user, obj.created_by.user)
         return False
 
 
@@ -144,7 +144,7 @@ class RecipeUpdateSerializer(serializers.ModelSerializer):
         request = self.context.get('request', None)
 
         if request and request.user.is_authenticated:
-            return is_allowed(request.user, obj.created_by.user)
+            return is_allowed_in_inventory(request.user, obj.created_by.user)
         return False
 
     class Meta:
