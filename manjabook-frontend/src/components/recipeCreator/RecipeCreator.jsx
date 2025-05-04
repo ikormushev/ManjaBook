@@ -288,7 +288,7 @@ export default function RecipeCreator({recipeData = null}) {
     const handleModalMode = () => {
         setShowProductModal(!showProductModal);
     };
-    console.log(selectedProducts);
+
     return (
         <>
             <Box

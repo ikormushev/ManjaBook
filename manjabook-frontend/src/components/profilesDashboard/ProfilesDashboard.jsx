@@ -111,25 +111,25 @@ export default function ProfilesDashboard() {
             </Box>
         }
 
-        {loading ? <Loading/> : <Box>
-            <Typography variant="h4" gutterBottom
-                        sx={{
-                            color: '#105D5E',
-                            fontWeight: 'bold',
-                            textAlign: 'center',
-                            textTransform: 'uppercase',
-                            padding: 1
-                        }}>
-                Profiles
-            </Typography>
-            <SearchBar onSearch={handleSearch} removeSearch={() => setSearchedProfiles(null)} />
+        {loading ? <Loading/> : <Box sx={{ display: "flex", gap: 3, flexDirection: "column" }}>
+            <Box>
+                <Typography variant="h4" gutterBottom
+                            sx={{
+                                color: '#105D5E',
+                                fontWeight: 'bold',
+                                textAlign: 'center',
+                                textTransform: 'uppercase',
+                                padding: 1
+                            }}>
+                    Profiles
+                </Typography>
+                <SearchBar onSearch={handleSearch} removeSearch={() => setSearchedProfiles(null)} />
+            </Box>
             <Box
                 sx={{
                     display: 'flex',
                     flexWrap: 'wrap',
-                    justifyContent: 'space-between',
                     gap: 3,
-                    marginTop: 4
                 }}
             >
                 {searchedProfiles ?

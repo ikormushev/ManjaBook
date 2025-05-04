@@ -42,7 +42,7 @@ class AccountUser(auth_models.AbstractBaseUser, auth_models.PermissionsMixin):
     date_joined = models.DateTimeField(_("date joined"), default=timezone.now)
 
     USERNAME_FIELD = 'email'
-
+    REQUIRED_FIELDS = ['username']
     objects = AccountUserManager()
 
     def __str__(self):

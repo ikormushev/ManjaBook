@@ -1,6 +1,8 @@
 .profileContainer {
-    background-color: #DFDFDF;
     padding-top: 2em;
+    flex: 1;
+    min-height: 100%;
+    background-color: #DFDFDF;
 }
 
 .profile {

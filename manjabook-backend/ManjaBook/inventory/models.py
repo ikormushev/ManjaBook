@@ -41,7 +41,7 @@ class Unit(models.Model):
     base_unit = models.CharField(choices=NutritionPerChoices.choices,
                                  default=NutritionPerChoices.GRAMS,
                                  max_length=2)
-    convert_to_base_rate = models.DecimalField(max_digits=7, decimal_places=3, validators=[MinValueValidator(0.001)])
+    convert_to_base_rate = models.DecimalField(max_digits=7, decimal_places=3, validators=[MinValueValidator(Decimal("0.001"))])
     is_customizable = models.BooleanField(default=False)
 
     def __str__(self):

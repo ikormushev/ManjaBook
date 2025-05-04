@@ -62,25 +62,23 @@ export default function RecipesDashboard() {
     };
 
     return (
-        <Box sx={{
-            padding: 3
-        }}>
-            <Typography variant="h4" gutterBottom
-                        sx={{
-                            color: '#ab47bc',
-                            fontWeight: 'bold',
-                            textAlign: 'center',
-                            textTransform: 'uppercase',
-                            padding: 1
-                        }}>
-                Recipes
-            </Typography>
-            <SearchBar onSearch={handleSearch} removeSearch={() => setSearchedRecipes(null)} />
+        <Box sx={{ display: "flex", gap: 3, flexDirection: "column", padding: 3 }}>
+            <Box>
+                <Typography variant="h4" gutterBottom
+                            sx={{
+                                color: '#ab47bc',
+                                fontWeight: 'bold',
+                                textAlign: 'center',
+                                textTransform: 'uppercase',
+                                padding: 1
+                            }}>
+                    Recipes
+                </Typography>
+                <SearchBar onSearch={handleSearch} removeSearch={() => setSearchedRecipes(null)} />
+            </Box>
             <Box
                 sx={{
-                    padding: '1em 0',
                     display: 'flex',
-                    justifyContent: 'space-around',
                     flexWrap: 'wrap',
                     gap: 3,
                 }}

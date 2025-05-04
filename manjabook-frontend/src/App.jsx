@@ -6,7 +6,6 @@ import BlankLayout from "./components/blankLayout/BlankLayout.jsx";
 import Register from "./utils/register/Register.jsx";
 import PageNotFound from "./components/pageNotFound/PageNotFound.jsx";
 import Login from "./utils/login/Login.jsx";
-import Logout from "./utils/logout/Logout.jsx";
 import AuthProvider from "./context/authProvider/AuthProvider.jsx";
 import Profile from "./components/profile/Profile.jsx";
 import RecipeCreator from "./components/recipeCreator/RecipeCreator.jsx";
