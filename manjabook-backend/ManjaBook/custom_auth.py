@@ -27,9 +27,13 @@ class JWTAuthentication(authentication.BaseAuthentication):
         cookie = request.COOKIES.get("token")
         if cookie is None:
             return None
-        raw_token = cookie.encode(HTTP_HEADER_ENCODING)
-        validated_token = self.get_validated_token(raw_token)
-        return self.get_user(validated_token), validated_token
+
+        try:
+            raw_token = cookie.encode(HTTP_HEADER_ENCODING)
+            validated_token = self.get_validated_token(raw_token)
+            return self.get_user(validated_token), validated_token
+        except (InvalidToken, AuthenticationFailed):
+            return None
 
     def get_validated_token(self, raw_token: bytes) -> Token:
         """

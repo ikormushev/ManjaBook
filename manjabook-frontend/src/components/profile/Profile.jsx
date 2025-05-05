@@ -1,35 +1,19 @@
 import {Link, useNavigate, useParams} from "react-router-dom";
 import {useEffect, useState} from "react";
 import PageNotFound from "../pageNotFound/PageNotFound.jsx";
-import styles from "./Profile.module.css";
-import {
-    Tabs,
-    Tab,
-    Box,
-    Drawer,
-    Typography,
-    Button,
-    Divider,
-    IconButton,
-    Dialog,
-    DialogTitle,
-    DialogContent,
-    DialogContentText,
-    DialogActions,
-    TextField,
-    CircularProgress, InputLabel
-} from '@mui/material';
+import {Tabs, Tab, Box, Drawer, Typography, Button, Divider, IconButton, Dialog, DialogTitle,
+    DialogContent, DialogContentText, DialogActions, TextField, CircularProgress, InputLabel} from '@mui/material';
 import defaultUserPicture from "../../assets/images/default-user-picture.png";
-import defaultRecipeImage from "../../assets/images/default-recipe-image.png";
 import Loading from "../../utils/loading/Loading.jsx";
 import API_ENDPOINTS from "../../apiConfig.js";
 import {useError} from "../../context/errorProvider/ErrorProvider.jsx";
 import editButtonIcon from "../../assets/images/edit-button-icon.png";
 import deleteButtonIcon from "../../assets/images/delete-button-icon.png";
-import CustomModal from "../../utils/modal/CustomModal.jsx";
+import CustomModal from "../../utils/customModal/CustomModal.jsx";
 import {useSuccess} from "../../context/successProvider/SuccessProvider.jsx";
 import {useAuth} from "../../context/authProvider/AuthProvider.jsx";
-
+import RecipeCard from "../recipeCard/RecipeCard.jsx";
+import CollectionCard from "../collectionCard/CollectionCard.jsx";
 
 export default function Profile() {
     const {setError} = useError();
@@ -221,19 +205,52 @@ export default function Profile() {
     };
 
     return (
-        <div className={styles.profileContainer}>
-            <div className={styles.profile}>
-
-                <div className={styles.profileHeader}>
-
-                    <div className={styles.profilePicture}>
+        <Box
+            sx={{
+                backgroundColor: "#DFDFDF",
+                minHeight: "100%",
+                paddingTop: 5,
+                flex: 1
+            }}
+        >
+            <Box
+                sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "0.5em",
+                    backgroundColor: "white",
+                    margin: "0 auto",
+                    maxWidth: "800px",
+                }}
+            >
+                <Box
+                    sx={{
+                        display: "flex",
+                        alignItems: "flex-end",
+                        padding: "1em",
+                        gap: "1em",
+                    }}
+                >
+                    <Box
+                        sx={{
+                            maxWidth: "15em",
+                        }}
+                    >
                         {profile.profile_picture ?
                             <img src={profile.profile_picture} alt="profile_picture"/> :
                             <img src={defaultUserPicture} alt="profile_picture"/>}
-                    </div>
-                    <div className={styles.profileInfo}>
-                        <h2>@{profile.username}</h2>
-                    </div>
+                    </Box>
+
+                    <Typography
+                        variant="h5"
+                        sx={{
+                            fontWeight: "bold",
+                            flex: 1
+                        }}
+                    >
+                        @{profile.username}
+                    </Typography>
+
                     {profile.is_owner && <>
                         <Box sx={{
                             display: "flex",
@@ -353,7 +370,7 @@ export default function Profile() {
                             </Box>
                         </CustomModal>
                     </>}
-                </div>
+                </Box>
 
                 <Box sx={{borderBottom: 1, borderColor: 'divider'}}>
                     <Tabs
@@ -368,43 +385,53 @@ export default function Profile() {
                     </Tabs>
                 </Box>
 
-                <div>
+                <Box>
                     {activeTab === 0 &&
-                        <div className={styles.profileTabContainer}>
+                        <Box
+                            sx={{
+                                display: "flex",
+                                flexWrap: "wrap",
+                                gap: "1.5em",
+                                padding: "2em",
+                                justifyContent: {
+                                    xs: "center",
+                                    sm: "flex-start"
+                                },
+                            }}
+                        >
                             {profile.recipes.map((recipe) =>
-                                <Link
-                                    to={`/recipes/${recipe.id}/${recipe.slug}`}
-                                    key={`recipe-${recipe.id}`}
-                                    style={{textDecoration: 'none', color: 'inherit'}}
-                                    className={styles.post}
-                                >
-                                    <div className={styles.postImage}>
-                                        {recipe.image ?
-                                            <img src={recipe.image} alt="recipeImage"/> :
-                                            <img src={defaultRecipeImage} alt="defaultRecipeImage"/>}
-                                        <div className={styles.hoverOverlay}>
-                                            <p>{recipe.name}</p>
-                                        </div>
-                                    </div>
+                                <Link to={`/recipes/${recipe.id}/${recipe.slug}`} key={`${recipe.id}-${recipe.name}`}>
+                                    <RecipeCard recipe={recipe} withCreator={false}/>
                                 </Link>
                             )}
-                        </div>
+                        </Box>
                     }
+
                     {activeTab === 1 &&
-                        <>
-                            <div className={styles.profileTabContainer}>
-                                {profile.owned_collections.map((collection) =>
-                                    <div key={`collection-${collection.id}`}
-                                         onClick={() => handleDrawerOpen(collection)}>
-                                        <div className={styles.postImage}>
-                                            <img src={collection.image} alt="collectionImage"/>
-                                            <div className={styles.hoverOverlay}>
-                                                <p>{collection.name}</p>
-                                            </div>
-                                        </div>
-                                    </div>
+                        <Box
+                            sx={{
+                                display: "flex",
+                                flexWrap: "wrap",
+                                gap: "1.5em",
+                                padding: "2em",
+                                justifyContent: {
+                                    xs: "center",
+                                    sm: "flex-start"
+                                },
+                            }}
+                        >
+                            <Box>
+                                {profile.owned_collections?.map((collection) =>
+                                    <Box
+                                        key={`collection-${collection.id}`}
+                                         onClick={(e) => handleDrawerOpen(collection)}
+                                        sx={{cursor: "pointer"}}
+                                    >
+                                        <CollectionCard collection={collection} />
+                                    </Box>
                                 )}
-                            </div>
+                            </Box>
+
                             <Drawer anchor="right" open={drawerOpen} onClose={handleDrawerClose}>
                                 <Box
                                     sx={{
@@ -440,15 +467,10 @@ export default function Profile() {
                                             gap: 2
                                         }}
                                     >
-                                        {selectedCollection?.recipes.map((recipe) => (
+                                        {selectedCollection?.recipes?.map((recipe) => (
                                             <Link
                                                 to={`/recipes/${recipe.id}/${recipe.slug}`}
                                                 key={`recipeFromCollection-${recipe.id}`}
-                                                style={{
-                                                    textDecoration: 'none',
-                                                    color: 'inherit',
-                                                }}
-                                                className={styles.post}
                                             >
                                                 <Typography
                                                     variant="body1"
@@ -467,9 +489,10 @@ export default function Profile() {
                                     </Box>
                                 </Box>
                             </Drawer>
-                        </>
+                        </Box>
                     }
-                </div>
-            </div>
-        </div>);
+                </Box>
+            </Box>
+        </Box>
+    );
 };

@@ -1,7 +1,6 @@
 import {useEffect, useRef, useState} from "react";
 import {useNavigate} from "react-router-dom";
 import {Box, TextField, InputLabel, Typography, CircularProgress, Button} from '@mui/material';
-import styles from "./RecipeCreator.module.css";
 import ProductAdd from "../productAdd/ProductAdd.jsx";
 import ProductDetail from "../productDetail/ProductDetail.jsx";
 import addButtonIcon from "../../assets/images/add-button-icon.png";
@@ -15,7 +14,7 @@ export default function RecipeCreator({recipeData = null}) {
     const {setSuccess} = useSuccess();
     const navigate = useNavigate();
     const [totalProducts, setTotalProducts] = useState(recipeData ? recipeData.products.length : 0);
-
+    const [imagePreview, setImagePreview] = useState(null);
     const [showProductModal, setShowProductModal] = useState(false);
     const [units, setUnits] = useState([]);
 
@@ -132,7 +131,6 @@ export default function RecipeCreator({recipeData = null}) {
                 navigate("/recipes");
             } else {
                 const data = await response.json();
-                console.log(data);
                 setFormErrors(oldValues => ({...oldValues, ...data}));
             }
         } catch (error) {
@@ -143,6 +141,7 @@ export default function RecipeCreator({recipeData = null}) {
     };
 
     const fileInputRef = useRef(null);
+
     const changeHandler = (e) => {
         setFormErrors(oldValues => ({
             ...oldValues,
@@ -153,7 +152,14 @@ export default function RecipeCreator({recipeData = null}) {
         let targetValue = e.target.value;
 
         if (targetType === 'file') {
-            targetValue = e.target.files[0];
+            const file = e.target.files?.[0];
+            if (file) {
+                targetValue = file;
+                const imageURL = URL.createObjectURL(file);
+                setImagePreview(imageURL);
+            } else {
+                return;
+            }
         }
 
         setFormValues(oldValues => ({
@@ -167,7 +173,7 @@ export default function RecipeCreator({recipeData = null}) {
             ...oldValues,
             image: null,
         }));
-
+        setImagePreview(null);
         if (fileInputRef.current) {
             fileInputRef.current.value = "";
         }
@@ -208,7 +214,7 @@ export default function RecipeCreator({recipeData = null}) {
             );
 
             if (existingIndex === -1) {
-                data.uniqueKey = `${totalProducts}-${data.product.id}`;
+                data.uniqueKey = `${totalProducts + 1}-${data.product.id}`;
                 setTotalProducts(oldValue => oldValue + 1);
                 return [...oldValues, data];
             }
@@ -269,19 +275,20 @@ export default function RecipeCreator({recipeData = null}) {
             productExists.quantity = Number(productExists.quantity) + Number(quantityValue);
             setSelectedProducts(oldValues => oldValues
                 .filter((itemInfo) => itemInfo.uniqueKey !== data.uniqueKey
-            ));
+                ));
             return
         }
 
         setSelectedProducts(oldValues => oldValues.map((itemInfo) =>
             itemInfo.uniqueKey !== data.uniqueKey ? itemInfo :
-                {...data,
-                quantity: quantityValue,
-                unit: unitValue,
-                custom_unit: customUnitValue
+                {
+                    ...data,
+                    quantity: quantityValue,
+                    unit: unitValue,
+                    custom_unit: customUnitValue
                 }
         ));
-        setFormErrors(prev => ({ ...prev, products: "" }));
+        setFormErrors(prev => ({...prev, products: ""}));
         setSuccess("Product successfully edited!");
     };
 
@@ -290,198 +297,316 @@ export default function RecipeCreator({recipeData = null}) {
     };
 
     return (
-        <>
+        <Box
+            component="form"
+            sx={{
+                display: 'flex',
+                gap: 2,
+                padding: 2,
+                flexWrap: 'wrap',
+            }}
+            onKeyDown={(e) => {
+                if (e.key === "Enter" && e.target.tagName !== "TEXTAREA") {
+                    e.preventDefault();
+                }
+            }}
+            onSubmit={handleSubmit}
+        >
             <Box
-                component="form"
                 sx={{
-                    display: 'flex',
-                    gap: 2,
-                    padding: 2,
-                    flexWrap: 'wrap',
+                    minWidth: "10em",
+                    maxWidth: "33em",
+                    flex: 1,
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 1.5,
                 }}
-                onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                        e.preventDefault();
-                    }
-                }}
-                onSubmit={handleSubmit}
             >
-                <div className={styles.recipeImageInfo}>
-                    <div className={styles.recipeImageContainer}>
-                        {recipeData && recipeData.image ?
-                            <img src={recipeData.image} alt="recipe_image"/> :
-                            <img src={defaultRecipeImage} alt="recipe_image"/>}
+                <Box
+                    sx={{
+                        border: "0.1em #105D5E solid",
+                        position: "relative",
+                        overflow: "hidden",
+                        "& img": {
+                            objectFit: "cover",
+                            height: "100%",
+                        },
+                        "&:hover div": {
+                            opacity: 1,
+                        },
+                    }}
+                >
+                    <img
+                        src={
+                            imagePreview
+                                ? imagePreview
+                                : recipeData?.image
+                                    ? recipeData.image
+                                    : defaultRecipeImage
+                        }
+                        alt="recipe_image"
+                    />
 
-                        <div className={styles.imageUploadOverlay}>
-                            <InputLabel htmlFor="image">Upload Image</InputLabel>
-                            <input
-                                id="image"
-                                name="image"
-                                accept="image/*"
-                                type="file"
-                                onChange={changeHandler}
-                                ref={fileInputRef}
-                                hidden
-                            />
-                            {formValues.image &&
-                                <Button
-                                    variant="contained"
-                                    color="primary"
-                                    sx={{
-                                        padding: 1,
-                                        '&:hover': {
-                                            backgroundColor: '#45a049',
-                                        },
-                                    }}
-                                    onClick={resetImage}
-                                    disabled={loadingFormValues}
-                                >
-                                    Remove
-                                </Button>}
-                        </div>
-                    </div>
-                    {formValues.image &&
-                        <Typography variant="caption" color="success">
-                            Image uploaded successfully! The image will be visualised after recipe submission.
+                    <Box
+                        sx={{
+                            position: "absolute",
+                            top: 0,
+                            left: 0,
+                            width: "100%",
+                            height: "100%",
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "center",
+                            justifyContent: "center",
+
+                            backgroundColor: "rgba(0, 0, 0, 0.5)",
+                            opacity: 0,
+                            transition: "opacity 0.3s ease",
+                            gap: "0.5em",
+                            "& hover": {
+                                opacity: 1
+                            }
+                        }}
+                    >
+                        <InputLabel
+                            htmlFor="image"
+                            sx={{
+                                backgroundColor: "#FFFFFF",
+                                padding: "0.5em 1em",
+                                borderRadius: "0.5em",
+                                cursor: "pointer",
+                            }}
+                        >
+                            Upload Image
+                        </InputLabel>
+                        <input
+                            id="image"
+                            name="image"
+                            accept="image/*"
+                            type="file"
+                            onChange={changeHandler}
+                            ref={fileInputRef}
+                            hidden
+                        />
+                        {formValues.image &&
+                            <Button
+                                variant="contained"
+                                color="primary"
+                                sx={{
+                                    padding: 1,
+                                    '&:hover': {
+                                        backgroundColor: '#45a049',
+                                    },
+                                }}
+                                onClick={resetImage}
+                                disabled={loadingFormValues}
+                            >
+                                Remove
+                            </Button>}
+                    </Box>
+                </Box>
+
+                {formValues.image &&
+                    <Typography variant="caption" color="success">
+                        Image uploaded successfully!
+                    </Typography>
+                }
+
+                {formErrors.image &&
+                    <Typography variant="caption" color="error">
+                        {formErrors.image}
+                    </Typography>
+                }
+
+                <TextField
+                    name="portions"
+                    type="number"
+                    value={formValues.portions || ''}
+                    onChange={changeHandler}
+                    fullWidth
+                    error={!!formErrors.portions}
+                    helperText={formErrors.portions || ''}
+                    variant="outlined"
+                    label="Portions"
+                    required
+                />
+
+                <TextField
+                    name="time_to_prepare"
+                    type="number"
+                    value={formValues.time_to_prepare || ''}
+                    onChange={changeHandler}
+                    fullWidth
+                    error={!!formErrors.time_to_prepare}
+                    helperText={formErrors.time_to_prepare || ''}
+                    variant="outlined"
+                    label="Time to Prepare"
+                    required
+                />
+
+                <TextField
+                    name="time_to_cook"
+                    type="number"
+                    value={formValues.time_to_cook || ''}
+                    onChange={changeHandler}
+                    fullWidth
+                    error={!!formErrors.time_to_cook}
+                    helperText={formErrors.time_to_cook || ''}
+                    variant="outlined"
+                    label="Time to Cook"
+                    required
+                />
+            </Box>
+
+            <Box
+                sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "1em",
+                    flex: 2,
+                    minWidth: "10em",
+                }}
+            >
+                <Box
+                    sx={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "1em",
+                    }}
+                >
+                    <TextField
+                        name="name"
+                        value={formValues.name}
+                        onChange={changeHandler}
+                        fullWidth
+                        error={!!formErrors.name}
+                        helperText={formErrors.name || ''}
+                        variant="outlined"
+                        label="Name"
+                        required
+                    />
+
+                    <TextField
+                        name="quick_description"
+                        value={formValues.quick_description}
+                        onChange={changeHandler}
+                        fullWidth
+                        multiline
+                        rows={1}
+                        error={!!formErrors.quick_description}
+                        helperText={formErrors.quick_description || ''}
+                        variant="outlined"
+                        label="Description"
+                        required
+                    />
+
+                    <TextField
+                        id="preparation"
+                        name="preparation"
+                        value={formValues.preparation}
+                        onChange={changeHandler}
+                        fullWidth
+                        multiline
+                        rows={10}
+                        error={!!formErrors.preparation}
+                        helperText={formErrors.preparation || ''}
+                        variant="outlined"
+                        label="Preparation"
+                        required
+                    />
+                </Box>
+
+                <Box
+                    sx={{
+                        padding: "1em",
+                        border: "1px solid #ccc",
+                        borderRadius: "0.5em",
+                    }}
+                >
+                    <Box
+                        sx={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                        }}
+                    >
+                        <Typography
+                            variant="h6"
+                            sx={{
+                                fontWeight: "bold"
+                            }}
+                        >
+                            Selected Products:
+                        </Typography>
+                        <ProductAdd
+                            units={units}
+                            onSendData={handleSelectedProducts}
+                            handleModalMode={handleModalMode}
+                            showProductModal={showProductModal}
+                        >
+                            <Button
+                                sx={{
+                                    width: "2.5em",
+                                    backgroundColor: "transparent",
+                                }}
+                                type="button"
+                                onClick={handleModalMode}
+                            >
+                                <img src={addButtonIcon} alt="Add Product"/>
+                            </Button>
+                        </ProductAdd>
+                    </Box>
+
+                    <Box
+                        sx={{
+                            display: "flex",
+                            gap: "1em",
+                            flexWrap: "wrap",
+                        }}
+                    >
+                        {selectedProducts.map((productInfo) => (
+                            <Box
+                                key={`product-${productInfo.product.id}-${productInfo.unit.id}-${productInfo.quantity}`}>
+                                <ProductDetail productInfo={productInfo}
+                                               onDeleteProduct={handleDeleteProduct}
+                                               onEditProduct={handleEditProduct}
+                                               units={units}
+                                />
+                            </Box>
+                        ))}
+                    </Box>
+
+                    {formErrors.products &&
+                        <Typography variant="caption" color="error">
+                            {formErrors.products}
                         </Typography>
                     }
-                    {formErrors.image && <Typography variant="caption" color="error">
-                        {formErrors.image}
-                    </Typography>}
-                    <TextField
-                        name="portions"
-                        type="number"
-                        value={formValues.portions || ''}
-                        onChange={changeHandler}
-                        fullWidth
-                        error={!!formErrors.portions}
-                        helperText={formErrors.portions || ''}
-                        variant="outlined"
-                        label="Portions"
-                        required
-                    />
+                </Box>
 
-                    <TextField
-                        name="time_to_prepare"
-                        type="number"
-                        value={formValues.time_to_prepare || ''}
-                        onChange={changeHandler}
-                        fullWidth
-                        error={!!formErrors.time_to_prepare}
-                        helperText={formErrors.time_to_prepare || ''}
-                        variant="outlined"
-                        label="Time to Prepare"
-                        required
-                    />
-
-                    <TextField
-                        name="time_to_cook"
-                        type="number"
-                        value={formValues.time_to_cook || ''}
-                        onChange={changeHandler}
-                        fullWidth
-                        error={!!formErrors.time_to_cook}
-                        helperText={formErrors.time_to_cook || ''}
-                        variant="outlined"
-                        label="Time to Cook"
-                        required
-                    />
-                </div>
-
-                <div className={styles.recipeBodyContainer}>
-                    <div className={styles.recipeBody}>
-                        <TextField
-                            name="name"
-                            value={formValues.name}
-                            onChange={changeHandler}
-                            fullWidth
-                            error={!!formErrors.name}
-                            helperText={formErrors.name || ''}
-                            variant="outlined"
-                            label="Name"
-                            required
-                        />
-
-                        <TextField
-                            name="quick_description"
-                            value={formValues.quick_description}
-                            onChange={changeHandler}
-                            fullWidth
-                            multiline
-                            rows={1}
-                            error={!!formErrors.quick_description}
-                            helperText={formErrors.quick_description || ''}
-                            variant="outlined"
-                            label="Description"
-                            required
-                        />
-
-                        <TextField
-                            id="preparation"
-                            name="preparation"
-                            value={formValues.preparation}
-                            onChange={changeHandler}
-                            fullWidth
-                            multiline
-                            rows={10}
-                            error={!!formErrors.preparation}
-                            helperText={formErrors.preparation || ''}
-                            variant="outlined"
-                            label="Preparation"
-                            required
-                        />
-                    </div>
-
-                    <div className={styles.selectedProducts}>
-                        <div className={styles.selectedProductsHeader}>
-                            <h3>Selected Products:</h3>
-                            <ProductAdd
-                                units={units}
-                                onSendData={handleSelectedProducts}
-                                handleModalMode={handleModalMode}
-                                showProductModal={showProductModal}
-                            >
-                                <button className={styles.addButton} type="button" onClick={handleModalMode}>
-                                    <img src={addButtonIcon} alt="Add Product"/>
-                                </button>
-                            </ProductAdd>
-                        </div>
-                        <div className={styles.selectedProductsBody}>
-                            {selectedProducts.map((productInfo) => (
-                                <div
-                                    key={`product-${productInfo.product.id}-${productInfo.unit.id}-${productInfo.quantity}`}>
-                                    <ProductDetail productInfo={productInfo}
-                                                   onDeleteProduct={handleDeleteProduct}
-                                                   onEditProduct={handleEditProduct}
-                                                   units={units}
-                                    />
-                                </div>
-                            ))}
-                        </div>
-                        {formErrors.products && <Typography variant="caption" color="error">
-                            {formErrors.products}
-                        </Typography>}
-                    </div>
-
-                    <div className={styles.submitButtonContainer}>
-                        <Button
-                            type="submit"
-                            variant="contained"
-                            color="primary"
-                            sx={{
-                                padding: 1.5,
-                                '&:hover': {
-                                    backgroundColor: '#45a049',
-                                },
-                            }}
-                            disabled={loadingFormValues}
-                        >
-                            {loadingFormValues ? <CircularProgress size={24}/> : recipeData ? "Edit Recipe" : "Submit Recipe"}
-                        </Button>
-                    </div>
-                </div>
+                <Box
+                    sx={{
+                        display: "flex",
+                        justifyContent: "flex-end",
+                    }}
+                >
+                    <Button
+                        type="submit"
+                        variant="contained"
+                        color="primary"
+                        sx={{
+                            padding: 1.5,
+                            '&:hover': {
+                                backgroundColor: '#45a049',
+                            },
+                        }}
+                        disabled={loadingFormValues}
+                    >
+                        {loadingFormValues ?
+                            <CircularProgress size={24}/> : recipeData ? "Edit Recipe" : "Submit Recipe"}
+                    </Button>
+                </Box>
             </Box>
-        </>
+        </Box>
     );
 };
 

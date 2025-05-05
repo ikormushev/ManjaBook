@@ -1,9 +1,8 @@
-import styles from './ProductDetail.module.css';
 import deleteButtonIcon from '../../assets/images/delete-button-icon.png';
 import editButtonIcon from '../../assets/images/edit-button-icon.png';
 import {useState} from "react";
 import {Box, IconButton} from "@mui/material";
-import CustomModal from "../../utils/modal/CustomModal.jsx";
+import CustomModal from "../../utils/customModal/CustomModal.jsx";
 import ProductCard from "../productCard/ProductCard.jsx";
 import ConfigureProduct from "../configureProduct/ConfigureProduct.jsx";
 
@@ -32,23 +31,51 @@ export default function ProductDetail({productInfo, units, onDeleteProduct, onEd
     };
 
     return (
-        <div className={styles.productDetailCard}>
-            <div className={styles.productInfo}>
-                <p>{currentProduct.product.name}</p>
-                <div className={styles.unitQuantity}>
-                    <span className={styles.quantityStyle}>{currentProduct.quantity}</span>
-                    <span className={styles.unitStyle}>{currentProduct.unit.abbreviation}</span>
-                </div>
-            </div>
+        <Box
+            sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 3,
+                padding: "1em",
+                border: "1px solid #e0e0e0",
+                borderRadius: "0.5em",
+                boxShadow: "0 2px 5px rgba(0, 0, 0, 0.1)"
+            }}
+        >
             <Box
                 sx={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '0.5em',
-                '& button': {
-                    width: '2em',
-                },
-            }}>
+                    display: "flex",
+                    gap: 3,
+                    flexDirection: "column",
+                }}
+            >
+                <span>{currentProduct.product.name}</span>
+                <Box
+                    sx={{
+                        display: "flex",
+                        gap: "0.4em",
+                        fontWeight: "bold",
+                        "& span": {
+                            padding: "0.2em",
+                            backgroundColor: "#eaf4fc",
+                            borderRadius:" 0.25em",
+                            color: "#007bff",
+                        }
+                    }}
+                >
+                    <span>{currentProduct.quantity}</span>
+                    <span>{currentProduct.unit.abbreviation}</span>
+                </Box>
+            </Box>
+            <Box
+                sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '0.5em',
+                    '& button': {
+                        width: '2em',
+                    },
+                }}>
                 <IconButton onClick={handleModalMode}>
                     <img src={editButtonIcon} alt="editButtonIcon"/>
                 </IconButton>
@@ -58,20 +85,22 @@ export default function ProductDetail({productInfo, units, onDeleteProduct, onEd
                 </IconButton>
 
                 <CustomModal isOpen={showProductEditModal} onClose={handleModalMode}>
-                    <h3>Edit Product</h3>
-                    <ConfigureProduct
-                        currentProduct={currentProduct}
-                        handleCurrentProduct={handleProductEdit}
-                        units={units}
-                        onSubmitMethod={handleEdit}
-                        configureButtonName="Edit"
-                        isDisabled={isDisabled}
-                        setIsDisabled={setIsDisabled}
-                    >
-                        <ProductCard product={currentProduct.product}/>
-                    </ConfigureProduct>
+                    <Box sx={{display: 'flex', flexDirection: 'column', gap: 2}}>
+                        <h3>Edit Product</h3>
+                        <ConfigureProduct
+                            currentProduct={currentProduct}
+                            handleCurrentProduct={handleProductEdit}
+                            units={units}
+                            onSubmitMethod={handleEdit}
+                            configureButtonName="Edit"
+                            isDisabled={isDisabled}
+                            setIsDisabled={setIsDisabled}
+                        >
+                            <ProductCard product={currentProduct.product}/>
+                        </ConfigureProduct>
+                    </Box>
                 </CustomModal>
             </Box>
-        </div>
+        </Box>
     );
 };

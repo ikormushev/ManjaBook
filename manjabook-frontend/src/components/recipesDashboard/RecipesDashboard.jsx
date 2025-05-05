@@ -1,11 +1,11 @@
 import {useEffect, useState} from "react";
 import RecipeCard from "../recipeCard/RecipeCard.jsx";
-import {Link} from "react-router-dom";
 import Loading from "../../utils/loading/Loading.jsx";
 import API_ENDPOINTS from "../../apiConfig.js";
 import {useError} from "../../context/errorProvider/ErrorProvider.jsx";
 import SearchBar from "../../utils/searchBar/SearchBar.jsx";
 import {Box, Typography} from "@mui/material";
+import {Link} from "react-router-dom";
 
 export default function RecipesDashboard() {
     const {setError} = useError();
@@ -51,25 +51,22 @@ export default function RecipesDashboard() {
         }
     };
 
-    const showRecipe = (recipe) => {
-      return (<Link
-          to={`${recipe.id}/${recipe.slug}`}
-          key={`${recipe.id}-${recipe.name}`}
-          style={{textDecoration: 'none', color: 'inherit'}}
-      >
-          {RecipeCard(recipe)}
-      </Link>);
-    };
-
     return (
-        <Box sx={{ display: "flex", gap: 3, flexDirection: "column", padding: 3 }}>
+        <Box
+            sx={{
+                display: "flex",
+                gap: 3,
+                flexDirection: "column",
+                padding: 3,
+            }}
+        >
             <Box>
                 <Typography variant="h4" gutterBottom
                             sx={{
-                                color: '#ab47bc',
-                                fontWeight: 'bold',
-                                textAlign: 'center',
-                                textTransform: 'uppercase',
+                                color: "#ab47bc",
+                                fontWeight: "bold",
+                                textAlign: "center",
+                                textTransform: "uppercase",
                                 padding: 1
                             }}>
                     Recipes
@@ -78,14 +75,24 @@ export default function RecipesDashboard() {
             </Box>
             <Box
                 sx={{
-                    display: 'flex',
-                    flexWrap: 'wrap',
+                    display: "flex",
+                    flexWrap: "wrap",
                     gap: 3,
+                    justifyContent: {
+                        xs: "center",
+                        sm: "flex-start"
+                    },
                 }}
             >
                 {searchedRecipes ?
-                    searchedRecipes.map((recipe) => showRecipe(recipe)) :
-                    recipes.map((recipe) => showRecipe(recipe))}
+                    searchedRecipes.map((recipe) => <Link to={`${recipe.id}/${recipe.slug}`} key={`${recipe.id}-${recipe.name}`}>
+                        <RecipeCard recipe={recipe}/>
+                    </Link>
+                    ) :
+                    recipes.map((recipe) => <Link to={`${recipe.id}/${recipe.slug}`} key={`${recipe.id}-${recipe.name}`}>
+                        <RecipeCard recipe={recipe}/>
+                    </Link>
+                    )}
             </Box>
         </Box>
     );

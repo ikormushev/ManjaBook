@@ -1,9 +1,10 @@
 import {Box, Button, Card, CardContent, CardMedia, Typography} from "@mui/material";
-import {useNavigate} from "react-router-dom";
+import {Link, useNavigate} from "react-router-dom";
 import {useEffect, useState} from "react";
 import API_ENDPOINTS from "../../apiConfig.js";
 import {useError} from "../../context/errorProvider/ErrorProvider.jsx";
 import Loading from "../../utils/loading/Loading.jsx";
+import RecipeCard from "../recipeCard/RecipeCard.jsx";
 
 export default function Home() {
     const {setError} = useError();
@@ -42,10 +43,10 @@ export default function Home() {
     >
         <Box
             sx={{
-                backgroundColor: '#f4f4f4',
+                backgroundColor: '#F4F4F4',
                 padding: 4,
                 borderRadius: 2,
-                textAlign: 'center',
+                textAlign: "center",
             }}
         >
             <Typography variant="h3" gutterBottom>
@@ -59,7 +60,7 @@ export default function Home() {
                 color="primary"
                 size="large"
                 sx={{marginTop: 2}}
-                onClick={() => navigate('/recipes')}
+                onClick={() => navigate("/recipes")}
             >
                 Explore Recipes
             </Button>
@@ -68,51 +69,30 @@ export default function Home() {
         {loading ? <Loading/> : <Box>
             <Typography variant="h4" gutterBottom
                         sx={{
-                            color: '#105D5E',
-                            fontWeight: 'bold',
-                            textAlign: 'center',
-                            textTransform: 'uppercase',
+                            color: "#105D5E",
+                            fontWeight: "bold",
+                            textAlign: "center",
+                            textTransform: "uppercase",
                             padding: 1
                         }}>
                 Featured Recipes
             </Typography>
             <Box
                 sx={{
-                    display: 'flex',
-                    flexWrap: 'wrap',
-                    justifyContent: 'space-between',
+                    display: "flex",
+                    flexWrap: "wrap",
+                    justifyContent: {
+                        xs: "center",
+                        sm: "flex-start"
+                    },
                     gap: 3,
                 }}
             >
-                {featuredRecipes.map((recipe) => (
-                    <Box
-                        key={recipe.id}
-                        sx={{
-                            flex: '1 1 calc(33% - 16px)',
-                            maxWidth: 'calc(33% - 16px)',
-                            minWidth: '200px',
-                        }}
-                    >
-                        <Card>
-                            <CardMedia
-                                component="img"
-                                image={recipe.image}
-                                alt={recipe.name}
-                            />
-                            <CardContent>
-                                <Typography variant="h6">{recipe.name}</Typography>
-                                <Button
-                                    variant="outlined"
-                                    size="small"
-                                    onClick={() => navigate(`/recipes/${recipe.id}/${recipe.slug}`)}
-                                    sx={{marginTop: 1}}
-                                >
-                                    View Recipe
-                                </Button>
-                            </CardContent>
-                        </Card>
-                    </Box>
-                ))}
+                {featuredRecipes.map((recipe) =>
+                        <Link to={`recipes/${recipe.id}/${recipe.slug}`} key={`${recipe.id}-${recipe.name}`}>
+                    <RecipeCard recipe={recipe}/>
+                </Link>
+                )}
             </Box>
         </Box>}
         <Box

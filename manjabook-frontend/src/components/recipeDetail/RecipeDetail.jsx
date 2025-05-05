@@ -1,7 +1,6 @@
 import {Link, useNavigate, useParams} from "react-router-dom";
 import {useEffect, useState} from "react";
 import PageNotFound from "../pageNotFound/PageNotFound.jsx";
-import styles from './RecipeDetail.module.css';
 import RecipeProducts from "../recipeProduct/RecipeProducts.jsx";
 import defaultUserPicture from "../../assets/images/default-user-picture.png";
 import defaultRecipeImage from "../../assets/images/default-recipe-image.png";
@@ -12,9 +11,9 @@ import Loading from "../../utils/loading/Loading.jsx";
 import RecipeCreator from "../recipeCreator/RecipeCreator.jsx";
 import API_ENDPOINTS from "../../apiConfig.js";
 import {useError} from "../../context/errorProvider/ErrorProvider.jsx";
-import {IconButton} from "@mui/material";
+import {Avatar, Box, IconButton, Typography} from "@mui/material";
 import {useAuth} from "../../context/authProvider/AuthProvider.jsx";
-import CustomModal from "../../utils/modal/CustomModal.jsx";
+import CustomModal from "../../utils/customModal/CustomModal.jsx";
 import RecipeAddToCollection from "../recipeAddToCollection/RecipeAddToCollection.jsx";
 import {useSuccess} from "../../context/successProvider/SuccessProvider.jsx";
 
@@ -95,97 +94,265 @@ export default function RecipeDetail() {
 
     const userCard = (url, user) => {
         return (
-            <>
-                <Link to={url}>
-                    <div className={styles.profilePicture}>
-                        <img src={user.profile_picture} alt="profile_picture"/>
-                    </div>
-                </Link>
-                <div className={styles.creatorInfo}>
-                    <div className={styles.creatorUsername}>
-                        <p>@{user.username}</p>
-                    </div>
-                    <div className={styles.recipeDate}>
-                        <p>📅 {`${date.day}/${date.month}/${date.year}`}</p>
-                    </div>
-                </div>
-            </>
+            <Link to={url}>
+                <Box
+                    sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 1,
+
+                        backgroundColor: "white",
+                        borderRadius: "3em",
+                        padding: "0.5em 2em",
+                        boxShadow: 1,
+
+                        position: "absolute",
+                        top: "1.5em",
+                        left: "2em",
+                        zIndex: 10,
+                    }}
+                >
+                    <Avatar
+                        src={user.profile_picture}
+                        alt={user.username}
+                        sx={{
+                            width: {
+                                xs: "2em",
+                                md: "3em"
+                            },
+                            height: {
+                                xs: "2em",
+                                md: "3em"
+                            },
+                    }}
+                    />
+                    <Typography
+                        variant="body2"
+                        sx={{
+                            fontWeight: "bold",
+                            maxWidth: "15em",
+                            fontSize: "1.2em",
+                        }}
+                        noWrap
+                    >
+                        {user.username}
+                    </Typography>
+                </Box>
+            </Link>
         );
     };
+
     return (
         editRecipe ?
             <RecipeCreator recipeData={recipe}/> :
-            <div className={styles.recipeContainer}>
-                <div className={styles.recipeInfo}>
-                    <h2>{recipe.name}</h2>
-                    <div className={styles.recipeImageContainer}>
-                        <div className={styles.creator}>
-                            {recipe.created_by && recipe.created_by.is_active ?
-                                userCard(`/profiles/${recipe.created_by.user_id}`, recipe.created_by) :
-                                userCard("/profiles", anonymousUser)}
-                        </div>
-                        <div className={styles.recipeImage}>
+            <Box sx={{
+                padding: "2em",
+                display: "flex",
+                gap: 5,
+                flexDirection: {
+                    xs: "column",
+                    lg: "row"
+                },
+            }}>
+                <Box sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 5,
+                    justifyContent: {
+                        xs: "center",
+                        lg: "flex-start"
+                    },
+                    alignItems: {
+                        xs: "center",
+                        lg: "flex-start"
+                    },
+                }}>
+                    <Typography
+                        variant="h5"
+                        sx={{
+                            fontWeight: "bold"
+                        }}
+                    >
+                        {recipe.name}
+                    </Typography>
+                    <Box
+                        sx={{
+                            position: "relative",
+                            overflow: "visible",
+                        }}
+                    >
+                        {recipe.created_by && recipe.created_by.is_active ?
+                            userCard(`/profiles/${recipe.created_by.user_id}`, recipe.created_by) :
+                            userCard("/profiles", anonymousUser)}
+
+                        <Box
+                            sx={{
+                                maxWidth: "50em",
+                                height: "auto",
+                                position: "relative",
+                            }}
+                        >
                             {recipe.image ?
                                 <img src={recipe.image} alt="recipe_image"/> :
                                 <img src={defaultRecipeImage} alt="default_recipe_image"/>}
-                            <div className={styles.recipeMenuButtons}>
+
+                            <Box
+                                sx={{
+                                    position: "absolute",
+                                    top: "0.5em",
+                                    right: "0.25em",
+                                    zIndex: 11,
+                                }}
+                            >
                                 {isAuthenticated &&
                                     <>
-                                        <IconButton onClick={handleModalMode}>
+                                        <IconButton onClick={handleModalMode} sx={{width: "3em"}}>
                                             <img src={addButtonIcon} alt="addButtonIcon"/>
                                         </IconButton>
+
                                         <CustomModal isOpen={showCollectionModal} onClose={handleModalMode}>
                                             <RecipeAddToCollection recipe={recipe}/>
                                         </CustomModal>
                                     </>
                                 }
+                            </Box>
+
+                            {recipe.is_owner &&
+                                <Box
+                                    sx={{
+                                        display: "flex",
+                                        position: "absolute",
+                                        bottom: "5em",
+                                        right: "0.25em",
+                                        zIndex: 10,
+                                        "& img": {
+                                            width: "2.5em"
+                                        }
+                                    }}
+                                >
+                                    <IconButton onClick={handleEditButton}>
+                                        <img src={editButtonIcon} alt="editButtonIcon"/>
+                                    </IconButton>
+                                    <IconButton onClick={handleDeleteButton}>
+                                        <img src={deleteButtonIcon} alt="deleteButtonIcon"/>
+                                    </IconButton>
+                                </Box>
+                            }
+
+                            <Typography
+                                variant="subtitle2"
+                                sx={{
+                                    fontStyle: "italic",
+                                    padding: "1em 0",
+                                    textAlign: "center",
+                                    fontSize: "1.2em"
+                                }}
+                            >
+                                &quot;{recipe.quick_description}&quot;
+                            </Typography>
+                        </Box>
+
+                        <Box
+                            sx={{
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "space-around",
+                                flexWrap: "wrap",
+                                gap: "1.5em",
+                                "& div": {
+                                    backgroundColor: "white",
+                                    borderRadius: "0.2em",
+                                    padding: "0.5em",
+                                    boxShadow: "rgba(0, 0, 0, 0.02) 0 0.1em 0.3em 0, " +
+                                        "rgba(27, 31, 35, 0.15) 0 0 0 0.1em",
+                                }
+                            }}
+                        >
+                            <div>
+                                <p>📅 {`${date.day}/${date.month}/${date.year}`}</p>
                             </div>
-                            {recipe.is_owner && <div className={styles.recipeOwnerButtons}>
-                                <IconButton onClick={handleEditButton}>
-                                    <img src={editButtonIcon} alt="editButtonIcon"/>
-                                </IconButton>
-                                <IconButton onClick={handleDeleteButton}>
-                                    <img src={deleteButtonIcon} alt="deleteButtonIcon"/>
-                                </IconButton>
-                            </div>}
-                            <div className={styles.recipeQuickDescription}>
-                                <p>"{recipe.quick_description}"</p>
-                            </div>
-                        </div>
-                        <div className={styles.recipeCookInfo}>
-                            <div className={styles.recipeCookInfoField}>
+
+                            <div>
                                 <p>🍲 {recipe.portions} portions</p>
                             </div>
 
-                            <div className={styles.recipeCookInfoField}>
+                            <div>
                                 <p>📄 Prep: {recipe.time_to_prepare} min</p>
                                 <p>🍳 Cooking: {recipe.time_to_cook} min</p>
                             </div>
-
-                            <div className={styles.recipeCookInfoField}>
+                            <div>
                                 <p>🔥 {recipe.total_nutrients.calories} cals</p>
                             </div>
-                        </div>
-                    </div>
-                </div>
-                <div className={styles.recipeBodyContainer}>
-                    <div className={styles.productsContainer}>
-                        <div className={styles.productsHeader}>
-                            <p>Products</p>
-                        </div>
-                        <div className={styles.products}>
+                        </Box>
+                    </Box>
+                </Box>
+
+                <Box sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 5,
+                }}>
+                    <Box>
+                        <Typography
+                            sx={{
+                                color: "white",
+                                backgroundColor: "#105D5E",
+                                padding: "1em",
+                                margin: "0 0.5em",
+                                fontWeight: "bold",
+                            }}
+                        >
+                            Products
+                        </Typography>
+
+                        <Box
+                            sx={{
+                                display: "flex",
+                                flexWrap: "wrap",
+                                padding: "1em",
+                                gap: "1em",
+                                alignItems: "flex-start",
+                                boxShadow: "rgba(0, 0, 0, 0.02) 0 0.1em 0.3em 0, " +
+                                    "rgba(27, 31, 35, 0.15) 0 0 0 0.1em",
+                                backgroundColor: "white",
+                            }}
+                        >
                             <RecipeProducts products={recipe.products}/>
-                        </div>
-                    </div>
-                    <div className={styles.preparationContainer}>
-                        <div className={styles.preparationHeader}>
-                            <p>Preparation</p>
-                        </div>
-                        <div className={styles.preparationBody}>
-                            <span>{recipe.preparation}</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
+                        </Box>
+                    </Box>
+
+                    <Box>
+                        <Typography
+                            sx={{
+                                color: "white",
+                                backgroundColor: "#105D5E",
+                                padding: "1em",
+                                margin: "0 0.5em",
+                                fontWeight: "bold",
+                            }}
+                        >
+                            Preparation
+                        </Typography>
+                        <Box
+                            sx={{
+                                backgroundColor: "white",
+                                padding: "1em",
+                                boxShadow: "rgba(0, 0, 0, 0.02) 0 0.1em 0.3em 0, " +
+                                    "rgba(27, 31, 35, 0.15) 0 0 0 0.1em",
+                            }}
+                        >
+                            <Typography
+                                variant="body1"
+                                sx={{
+                                    whiteSpace: "pre-line",
+                                    fontSize: "1.2em",
+                                }}
+                            >
+                                {recipe.preparation}
+                            </Typography>
+                        </Box>
+                    </Box>
+                </Box>
+            </Box>
     );
 }

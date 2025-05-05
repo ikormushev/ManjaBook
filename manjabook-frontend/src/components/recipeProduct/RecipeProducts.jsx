@@ -1,5 +1,4 @@
-import styles from "./RecipeProducts.module.css";
-import {Accordion, AccordionSummary, AccordionDetails, Typography} from '@mui/material';
+import {Accordion, AccordionSummary, AccordionDetails, Typography, Box} from '@mui/material';
 import {useState} from "react";
 
 
@@ -26,14 +25,32 @@ export default function RecipeProducts({products}) {
                 >
                     <AccordionSummary>
                         <Typography>
-                            {product.name} - {productInfo.quantity} {productInfo.unit.abbreviation} {productInfo.unit.is_customizable && (productInfo.custom_unit ? `(${productInfo.custom_unit.custom_convert_to_base_rate} ${productInfo.unit.base_unit})`: `(${productInfo.unit.convert_to_base_rate} ${productInfo.unit.base_unit})`)}
+                            <b>{product.name}</b> - {productInfo.quantity} {productInfo.unit.abbreviation} {productInfo.unit.is_customizable && (productInfo.custom_unit ? `(${productInfo.custom_unit.custom_convert_to_base_rate} ${productInfo.unit.base_unit})`: `(${productInfo.unit.convert_to_base_rate} ${productInfo.unit.base_unit})`)}
                         </Typography>
 
                     </AccordionSummary>
 
                     <AccordionDetails>
-                        <div className={styles.productDetail}>
-                            <div className={styles.productNutrients}>
+                        <Box
+                            sx={{
+                                display: "flex",
+                                flexDirection: "column",
+                                gap: "0.2em"
+                            }}
+                        >
+                            <Box
+                                sx={{
+                                    display: "flex",
+                                    flexWrap: "wrap",
+                                    gap: "0.8em",
+                                    "& span": {
+                                        color: "#007bff",
+                                        backgroundColor: "#eaf4fc",
+                                        padding: "0.2em 0.4em",
+                                        borderRadius: "0.2em",
+                                }
+                                }}
+                            >
                                 <span>Calories: {productInfo.calories}</span>
                                 <span>Protein: {productInfo.protein}</span>
 
@@ -45,8 +62,35 @@ export default function RecipeProducts({products}) {
 
                                 <span>Salt: {productInfo.salt}</span>
                                 <span>Fibre: {productInfo.fibre}</span>
-                            </div>
-                        </div>
+                            </Box>
+                            <br/>
+                            <Box
+                                sx={{
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    gap: "0.5em",
+                                }}
+                            >
+                                <Typography
+                                    sx={{
+                                        fontWeight: "bold",
+                                    }}
+                                >
+                                    Shopped from:
+                                </Typography>
+                                <Box
+                                    sx={{
+                                        display: "flex",
+                                        gap: "1em",
+                                        flexWrap: "wrap",
+                                    }}
+                                >
+                                    {product.shopped_from.map((shop) => {
+                                        return <span key={`${shop.name}-${shop.id}`}>{shop.name}</span>
+                                    })}
+                                </Box>
+                            </Box>
+                        </Box>
                     </AccordionDetails>
                 </Accordion>
             })

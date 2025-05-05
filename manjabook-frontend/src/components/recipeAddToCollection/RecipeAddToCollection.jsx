@@ -145,7 +145,6 @@ export default function RecipeAddToCollection({recipe}) {
                 flexDirection: "column",
             }}
         >
-
             {!createCollectionMode ?
                 <>
                     <Typography variant="h6">

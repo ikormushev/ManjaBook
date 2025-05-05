@@ -1,5 +1,4 @@
-import {NavLink,} from 'react-router-dom';
-import styles from './Header.module.css';
+import {NavLink} from 'react-router-dom';
 import {useAuth} from "../../context/authProvider/AuthProvider.jsx";
 import logoIcon from "../../assets/images/manja-logo.avif";
 import profilePhoto from "../../assets/images/photo-icon.png";
@@ -26,7 +25,19 @@ export default function Header() {
     };
 
     return (
-        <div className={styles.headerContainer}>
+        <Box
+            sx={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                flexWrap: "wrap",
+                padding: {
+                    xs: "0.5em",
+                    sm: "1em 2.5em"
+                },
+                backgroundColor: "#002737",
+            }}
+        >
             <Box
                 sx={{
                     display: "flex",
@@ -53,9 +64,9 @@ export default function Header() {
                         },
                     }}
                 >
-                    <NavLink to="/" className={styles.link}>Home</NavLink>
-                    <NavLink to="/recipes" className={styles.link}>Recipes</NavLink>
-                    <NavLink to="/profiles" className={styles.link}>Profiles</NavLink>
+                    <NavLink to="/">Home</NavLink>
+                    <NavLink to="/recipes">Recipes</NavLink>
+                    <NavLink to="/profiles">Profiles</NavLink>
                 </Box>
             </Box>
 
@@ -81,14 +92,14 @@ export default function Header() {
                 >
                     {isAuthenticated ? (
                         <Box>
-                            <NavLink to="/create-recipe" className={styles.link}>
+                            <NavLink to="/create-recipe">
                                 <MenuItem onClick={handleMenuClose}>
-                                        Create a Recipe
+                                    Create a Recipe
                                 </MenuItem>
                             </NavLink>
-                            <NavLink to={`/profiles/${userID}`} className={styles.link}>
+                            <NavLink to={`/profiles/${userID}`}>
                                 <MenuItem onClick={handleMenuClose}>
-                                        Profile
+                                    Profile
                                 </MenuItem>
                             </NavLink>
                             <MenuItem onClick={handleMenuClose}>
@@ -102,7 +113,7 @@ export default function Header() {
                                 color="primary"
                                 sx={{padding: 0.75}}
                             >
-                                <NavLink to='/login' className={styles.link}>
+                                <NavLink to='/login'>
                                     Login
                                 </NavLink>
                             </Button>
@@ -124,7 +135,7 @@ export default function Header() {
                                 color="secondary"
                                 sx={{padding: 0.75}}
                             >
-                                <NavLink to="/create-recipe" className={styles.link}>
+                                <NavLink to="/create-recipe">
                                     Create a Recipe
                                 </NavLink>
                             </Button>
@@ -142,13 +153,13 @@ export default function Header() {
                             color="primary"
                             sx={{padding: 0.75}}
                         >
-                            <NavLink to='/login' className={styles.link}>
+                            <NavLink to='/login'>
                                 Login
                             </NavLink>
                         </Button>
                     }
                 </Box>
             </Box>
-        </div>
+        </Box>
     );
 };

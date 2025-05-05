@@ -1,10 +1,7 @@
 import {useEffect, useState} from "react";
-import styles from './ProductAdd.module.css';
 import ProductCard from "../productCard/ProductCard.jsx";
 import MultiPageModal from "../multiPageModal/MultiPageModal.jsx";
-import {
-    Button,
-} from "@mui/material";
+import {Box, Button} from "@mui/material";
 import SearchBar from "../../utils/searchBar/SearchBar.jsx";
 import API_ENDPOINTS from "../../apiConfig.js";
 import {useError} from "../../context/errorProvider/ErrorProvider.jsx";
@@ -54,24 +51,25 @@ export default function ProductAdd({units, onSendData, handleModalMode, showProd
         fibre: 0,
         shopped_from: []
     });
+
     const [isDisabled, setIsDisabled] = useState(false);
 
-    useEffect(() => {
-        const fetchProducts = async () => {
-            try {
-                const response = await fetch(API_ENDPOINTS.products, {
-                    method: "GET",
-                    credentials: "include",
-                });
-                if (response.ok) {
-                    const data = await response.json();
-                    setProducts(data);
-                }
-            } catch (error) {
-                setError(error);
+    const fetchProducts = async () => {
+        try {
+            const response = await fetch(API_ENDPOINTS.products, {
+                method: "GET",
+                credentials: "include",
+            });
+            if (response.ok) {
+                const data = await response.json();
+                setProducts(data);
             }
-        };
+        } catch (error) {
+            setError(error);
+        }
+    };
 
+    useEffect(() => {
         fetchProducts();
     }, []);
 
@@ -154,7 +152,9 @@ export default function ProductAdd({units, onSendData, handleModalMode, showProd
             shopped_from: []
         });
     };
+
     const redirectFromCreateProductMode = () => {
+        fetchProducts();
         handleTabChange(null, 1);
         closeCreateProductMode();
     }
@@ -173,35 +173,63 @@ export default function ProductAdd({units, onSendData, handleModalMode, showProd
     };
 
     const showProduct = (product) => {
-        return (<ProductCard product={product} key={`${product.id}-${product.name}`}>
-            <Button
-                type="submit"
-                variant="contained"
-                color="primary"
-                onClick={() => {
-                    handleCurrentProductFormValues("product", product)
-                    handleTabChange(null, 1);
-                }}
-                sx={{padding: 0.5}}
-                disabled={isDisabled}
-            >
-                Select
-            </Button>
-        </ProductCard>);
+        return (
+            <ProductCard product={product} key={`${product.id}-${product.name}`}>
+                <Button
+                    type="submit"
+                    variant="contained"
+                    color="primary"
+                    onClick={() => {
+                        handleCurrentProductFormValues("product", product)
+                        handleTabChange(null, 1);
+                    }}
+                    sx={{padding: 0.5}}
+                    disabled={isDisabled}
+                >
+                    Select
+                </Button>
+            </ProductCard>
+        );
     };
 
     return (
-        <div>
+        <Box>
             {children}
             <MultiPageModal isOpen={showProductModal} onClose={resetModal}
                             pagesLabels={["Select Product", "Finalize Product"]}
                             activeTab={activeTab} handleTabChange={handleTabChange}>
                 {!createProductState ?
-                    <div className={styles.productsContainer}>
-                        <div className={styles.searchContainer}>
+                    <Box
+                        sx={{
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: 3
+                        }}
+                    >
+                        <Box
+                            sx={{
+                                display: "flex",
+                                justifyContent: "space-between",
+                                alignItems: "center",
+                                gap: 3
+                            }}
+                        >
                             <SearchBar onSearch={handleSearchSubmit} removeSearch={() => setSearchedProducts(null)}/>
 
-                            <div className={styles.productCreateContainer}>
+                            <Box
+                                sx={{
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    gap: 1,
+                                    border: "1px solid #DDDD",
+                                    backgroundColor: "white",
+                                    boxShadow: "0 0.5em 1em rgba(0, 0, 0, 0.1)",
+                                    padding: "0.75em",
+                                    "& span": {
+                                        fontWeight: "bold",
+                                    }
+                                }}
+                            >
                                 <span>Product not found?</span>
                                 <Button
                                     type="submit"
@@ -215,21 +243,45 @@ export default function ProductAdd({units, onSendData, handleModalMode, showProd
                                 >
                                     Create it
                                 </Button>
-                            </div>
-                        </div>
+                            </Box>
+                        </Box>
 
-                        <div className={styles.allProductsContainer}>
+                        <Box
+                            sx={{
+                                display: "flex",
+                                flexWrap: "wrap",
+                                gap: 3,
+                            }}
+                        >
                             {searchedProducts ?
                                 searchedProducts.map((product) => showProduct(product)) :
                                 products.map((product) => showProduct(product))}
-                        </div>
-                    </div>
-                    : <div className={styles.createProductContainer}>
-                        <div className={styles.createProductHeader}>
+                        </Box>
+                    </Box>
+                    : <Box
+                        sx={{
+                            display: "flex",
+                            justifyContent: "center",
+                            alignItems: "flex-start",
+                            flexDirection: "column",
+                            gap: 2
+                        }}
+                    >
+                        <Box
+                            sx={{
+                                "& button": {
+                                    backgroundColor: "transparent",
+                                    border: "none",
+                                    cursor: "pointer",
+                                    width: "3em",
+                                    borderRadius: "0.5em"
+                                }
+                            }}
+                        >
                             <button onClick={closeCreateProductMode}>
                                 <img src={leftButtonIcon} alt="return"/>
                             </button>
-                        </div>
+                        </Box>
                         <CreateCustomProduct
                             createProductFormValues={createProductFormValues}
                             setCreateProductFormValues={setCreateProductFormValues}
@@ -238,9 +290,15 @@ export default function ProductAdd({units, onSendData, handleModalMode, showProd
                             handleSelectProduct={handleCurrentProductFormValues}
                             redirectFromCreateProductMode={redirectFromCreateProductMode}
                         />
-                    </div>}
+                    </Box>}
 
-                <div className={styles.finalizeProductPageContainer}>
+                <Box
+                    sx={{
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                    }}
+                >
                     <ConfigureProduct
                         currentProduct={currentProduct}
                         handleCurrentProduct={handleCurrentProductFormValues}
@@ -276,7 +334,7 @@ export default function ProductAdd({units, onSendData, handleModalMode, showProd
                                 shopped_from: null,
                             }}/>}
                     </ConfigureProduct>
-                </div>
+                </Box>
             </MultiPageModal>
-        </div>);
+        </Box>);
 };

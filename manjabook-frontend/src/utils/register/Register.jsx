@@ -156,7 +156,7 @@ export default function Register() {
 
                 <Typography variant="body2" textAlign="center" sx={{ mt: 2 }}>
                     Already have an account?{' '}
-                    (<Link to='/login'>Login</Link>)
+                    (<Link to='/login'><b>Login</b></Link>)
                 </Typography>
             </Box>
         </Box>

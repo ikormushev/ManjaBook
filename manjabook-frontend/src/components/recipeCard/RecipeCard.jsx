@@ -1,41 +1,90 @@
-import styles from './RecipeCard.module.css';
 import defaultRecipeImage from "../../assets/images/default-recipe-image.png";
 import defaultUserPicture from "../../assets/images/default-user-picture.png";
+import {Avatar, Box, Card, CardContent, CardMedia, Typography} from "@mui/material";
 
 const anonymousUser = {
     profile_picture: defaultUserPicture,
     username: "AnonymousUser",
 };
 
-export default function RecipeCard(recipeDetails) {
-    const totalTime = recipeDetails.time_to_prepare + recipeDetails.time_to_cook;
-    const totalCalories = recipeDetails.total_nutrients.calories;
-    const creatorInfo = recipeDetails.created_by;
+export default function RecipeCard({recipe, withCreator = true}) {
+    const totalTime = recipe.time_to_prepare + recipe.time_to_cook;
+    const totalCalories = recipe.total_nutrients.calories;
+    const creatorInfo = recipe.created_by;
 
-    return (<div className={styles.recipeDetail}>
-            <div className={styles.recipeDetailHeader}>
-                {recipeDetails.image ?
-                    <img src={recipeDetails.image} alt="recipe_image"/> :
-                    <img src={defaultRecipeImage} alt="default_recipe_image"/>}
-            </div>
+    return (
+        <Card
+            sx={{
+                borderRadius: "1.5em",
+                boxShadow: "0 0 0.5em rgba(0,0,0,0.5)",
+                position: "relative",
+                overflow: "visible",
+            }}
+        >
+            <CardMedia
+                component="img"
+                image={recipe.image ? recipe.image : defaultRecipeImage}
+                alt={recipe.name}
+                sx={{
+                    maxHeight: 350,
+                    borderRadius: "1.5em 1.5em 0 0",
+                }}
+            />
 
-            <div className={styles.recipeDetailBody}>
-                <div className={styles.recipeDetailTitle}>
-                    <p>{recipeDetails.name}</p>
-                </div>
-                <div className={styles.recipeDetailInfo}>
-                    <p>🔁 {totalTime} minutes</p>
-                    <p>🔥 {totalCalories} calories</p>
-                </div>
-            </div>
+            {withCreator && <Box
+                sx={{
+                    position: "absolute",
+                    top: 16,
+                    left: 16,
+                    display: "flex",
+                    alignItems: "center",
+                    background: "white",
+                    borderRadius: "10em",
+                    padding: "0.5em 1em",
+                    gap: 1,
+                    boxShadow: 1,
+                    opacity: 0.9
+                }}
+            >
+                <Avatar
+                    src={
+                        creatorInfo?.is_active
+                            ? creatorInfo.profile_picture
+                            : anonymousUser.profile_picture
+                    }
+                    alt={creatorInfo?.username}
+                    sx={{width: 40, height: 40}}
+                />
+                <Typography
+                    variant="body2"
+                    sx={{
+                        fontWeight: "bold",
+                        maxWidth: "15em",
+                    }}
+                    noWrap
+                >
+                    {creatorInfo?.is_active
+                        ? creatorInfo.username
+                        : anonymousUser.username}
+                </Typography>
+            </Box>}
 
+            <CardContent
+                sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "0.5em",
+                }}
+            >
+                <Typography variant="h6" textAlign="center">
+                    {recipe.name}
+                </Typography>
 
-            <div className={styles.recipeDetailCreator}>
-                <div className={styles.profilePicture}>
-                    <img src={creatorInfo && creatorInfo.is_active ? creatorInfo.profile_picture: anonymousUser.profile_picture} alt="user_image"/>
-                </div>
-                <p>{creatorInfo && creatorInfo.is_active ? creatorInfo.username: anonymousUser.username}</p>
-            </div>
-        </div>
+                <Box sx={{display: "flex", justifyContent: "space-around"}}>
+                    <Typography variant="body1">🕒 {totalTime} minutes</Typography>
+                    <Typography variant="body1">🔥 {totalCalories} calories</Typography>
+                </Box>
+            </CardContent>
+        </Card>
     );
 };

@@ -1,4 +1,3 @@
-import React from 'react';
 import { Modal as MUIModal, Box} from '@mui/material';
 
 
@@ -12,7 +11,6 @@ export default function CustomModal({ isOpen, onClose, children }) {
                     top: '50%',
                     left: '50%',
                     transform: 'translate(-50%, -50%)',
-                    // width: '80vw',
                     maxHeight: '80vh',
                     backgroundColor: 'background.paper',
                     boxShadow: 24,

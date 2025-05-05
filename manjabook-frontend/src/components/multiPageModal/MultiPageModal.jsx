@@ -1,4 +1,4 @@
-import CustomModal from "../../utils/modal/CustomModal.jsx";
+import CustomModal from "../../utils/customModal/CustomModal.jsx";
 import {Box, Tab, Tabs} from "@mui/material";
 import {Children} from "react";
 

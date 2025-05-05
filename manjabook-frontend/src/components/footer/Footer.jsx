@@ -1,9 +1,16 @@
-import styles from './Footer.module.css'
+import {Box} from "@mui/material";
 
 export default function Footer() {
     return (
-        <div className={styles.footerContainer}>
+        <Box
+            sx={{
+                backgroundColor: "#002737",
+                textAlign: "center",
+                padding: 2,
+                color: "white"
+            }}
+        >
             <p>@ManjaBook. All rights reserved.</p>
-        </div>
+        </Box>
     );
 };

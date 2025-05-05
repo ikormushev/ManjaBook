@@ -7,22 +7,22 @@ import API_ENDPOINTS from "../../apiConfig.js";
 import {useSuccess} from "../../context/successProvider/SuccessProvider.jsx";
 
 export default function Login() {
-    const { setError } = useError();
+    const {setError} = useError();
     const {setSuccess} = useSuccess();
     const [loading, setLoading] = useState(false);
 
-    const [formErrors, setFormErrors] = useState({ email: "", password: "" });
+    const [formErrors, setFormErrors] = useState({email: "", password: ""});
     const [formValues, setFormValues] = useState({
         email: "",
         password: "",
     })
     const navigate = useNavigate();
-    const { setAuthState } = useAuth();
+    const {setAuthState} = useAuth();
 
     const handleLogin = async (e) => {
         e.preventDefault();
 
-        const newErrors = { email: "", password: ""};
+        const newErrors = {email: "", password: ""};
 
         if (!formValues.email) newErrors.email = 'Email is required';
         if (!formValues.password) newErrors.password = 'Password is required';
@@ -71,81 +71,79 @@ export default function Login() {
     }
 
     return (
-        <>
+        <Box
+            sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minHeight: '100vh',
+                padding: 3,
+                backgroundColor: '#f4f4f4',
+            }}
+        >
             <Box
                 sx={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    minHeight: '100vh',
-                    padding: 3,
-                    backgroundColor: '#f4f4f4',
+                    width: '100%',
+                    maxWidth: 400,
+                    backgroundColor: 'white',
+                    padding: 4,
+                    borderRadius: 2,
+                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
                 }}
             >
+                <Typography variant="h4" textAlign="center" gutterBottom>
+                    Login
+                </Typography>
+
                 <Box
+                    component="form"
                     sx={{
-                        width: '100%',
-                        maxWidth: 400,
-                        backgroundColor: 'white',
-                        padding: 4,
-                        borderRadius: 2,
-                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 2,
                     }}
+                    onSubmit={handleLogin}
                 >
-                    <Typography variant="h4" textAlign="center" gutterBottom>
-                        Login
-                    </Typography>
-
-                    <Box
-                        component="form"
-                        sx={{
-                            display: 'flex',
-                            flexDirection: 'column',
-                            gap: 2,
-                        }}
-                        onSubmit={handleLogin}
+                    <TextField
+                        label="Email"
+                        type="text"
+                        value={formValues.email}
+                        onChange={changeHandler}
+                        fullWidth
+                        required
+                        name="email"
+                        error={!!formErrors.email}
+                        helperText={formErrors.email}
+                        disabled={loading}
+                    />
+                    <TextField
+                        label="Password"
+                        type="password"
+                        name="password"
+                        value={formValues.password}
+                        onChange={changeHandler}
+                        fullWidth
+                        required
+                        disabled={loading}
+                    />
+                    <Button
+                        type="submit"
+                        variant="contained"
+                        color="primary"
+                        fullWidth
+                        sx={{padding: 1.5}}
+                        disabled={loading}
                     >
-                        <TextField
-                            label="Email"
-                            type="text"
-                            value={formValues.email}
-                            onChange={changeHandler}
-                            fullWidth
-                            required
-                            name="email"
-                            error={!!formErrors.email}
-                            helperText={formErrors.email}
-                            disabled={loading}
-                        />
-                        <TextField
-                            label="Password"
-                            type="password"
-                            name="password"
-                            value={formValues.password}
-                            onChange={changeHandler}
-                            fullWidth
-                            required
-                            disabled={loading}
-                        />
-                        <Button
-                            type="submit"
-                            variant="contained"
-                            color="primary"
-                            fullWidth
-                            sx={{ padding: 1.5 }}
-                            disabled={loading}
-                        >
-                            {loading ? <CircularProgress size={24} /> : "Login"}
-                        </Button>
-                    </Box>
-
-                    <Typography variant="body2" textAlign="center" sx={{ mt: 2 }}>
-                        Don't have an account?{' '}
-                        (<Link to='/register'>Register</Link>)
-                    </Typography>
+                        {loading ? <CircularProgress size={24}/> : "Login"}
+                    </Button>
                 </Box>
+
+                <Typography variant="body2" textAlign="center" sx={{mt: 2}}>
+                    Don't have an account?{' '}
+                    (<Link to='/register'><b>Register</b></Link>)
+                </Typography>
             </Box>
-        </>
+        </Box>
     );
 };

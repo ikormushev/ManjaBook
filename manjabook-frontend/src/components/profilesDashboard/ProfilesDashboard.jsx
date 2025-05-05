@@ -80,62 +80,68 @@ export default function ProfilesDashboard() {
             </Card>
         </Box>);
     };
-    return (<Box
-        sx={{
-            padding: 3,
-            display: "flex",
-            flexDirection: "column",
-            gap: 4
-        }}
-    >
-        {!authState.isAuthenticated &&
-            <Box
-                sx={{
-                    backgroundColor: '#e0f7fa',
-                    padding: 4,
-                    borderRadius: 2,
-                    textAlign: 'center',
-                }}
-            >
-                <Typography variant="h5" gutterBottom>
-                    Want to be A Part Of This Amazing Community?
-                </Typography>
-                <Button
-                    variant="contained"
-                    color="secondary"
-                    size="large"
-                    onClick={() => navigate('/register')}
-                >
-                    JOIN NOW
-                </Button>
-            </Box>
-        }
 
-        {loading ? <Loading/> : <Box sx={{ display: "flex", gap: 3, flexDirection: "column" }}>
-            <Box>
-                <Typography variant="h4" gutterBottom
-                            sx={{
-                                color: '#105D5E',
-                                fontWeight: 'bold',
-                                textAlign: 'center',
-                                textTransform: 'uppercase',
-                                padding: 1
-                            }}>
-                    Profiles
-                </Typography>
-                <SearchBar onSearch={handleSearch} removeSearch={() => setSearchedProfiles(null)} />
-            </Box>
-            <Box
-                sx={{
-                    display: 'flex',
-                    flexWrap: 'wrap',
-                    gap: 3,
-                }}
-            >
-                {searchedProfiles ?
-                    searchedProfiles.map((profile) => showProfile(profile)) :
-                    profiles.map((profile) => showProfile(profile))}
-            </Box>
-        </Box>}
-    </Box>);
+    return (
+        <Box
+            sx={{
+                padding: 3,
+                display: "flex",
+                flexDirection: "column",
+                gap: 4
+            }}
+        >
+            {!authState.isAuthenticated &&
+                <Box
+                    sx={{
+                        backgroundColor: '#e0f7fa',
+                        padding: 4,
+                        borderRadius: 2,
+                        textAlign: 'center',
+                    }}
+                >
+                    <Typography variant="h5" gutterBottom>
+                        Want to be A Part Of This Amazing Community?
+                    </Typography>
+                    <Button
+                        variant="contained"
+                        color="secondary"
+                        size="large"
+                        onClick={() => navigate('/register')}
+                    >
+                        JOIN NOW
+                    </Button>
+                </Box>
+            }
+
+            {loading ? <Loading/> : <Box sx={{display: "flex", gap: 3, flexDirection: "column"}}>
+                <Box>
+                    <Typography variant="h4" gutterBottom
+                                sx={{
+                                    color: "#105D5E",
+                                    fontWeight: "bold",
+                                    textAlign: "center",
+                                    textTransform: "uppercase",
+                                    padding: 1
+                                }}>
+                        Profiles
+                    </Typography>
+                    <SearchBar onSearch={handleSearch} removeSearch={() => setSearchedProfiles(null)}/>
+                </Box>
+                <Box
+                    sx={{
+                        display: "flex",
+                        flexWrap: "wrap",
+                        gap: 3,
+                        justifyContent: {
+                            xs: "center",
+                            sm: "flex-start"
+                        },
+                    }}
+                >
+                    {searchedProfiles ?
+                        searchedProfiles.map((profile) => showProfile(profile)) :
+                        profiles.map((profile) => showProfile(profile))}
+                </Box>
+            </Box>}
+        </Box>);
 }
